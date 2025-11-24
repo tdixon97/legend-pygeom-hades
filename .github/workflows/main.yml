@@ -120,10 +120,10 @@ jobs:
           python -m pip install --upgrade .
       - name: Create a testable geometry file
         run: |
-          legend-pygeom-hades --public-geom --fiber-modules=detailed -- geom-l200-test.gdml
+          legend-pygeom-hades --public-geom -- geom-test.gdml
       - name: Check for overlaps
         run: |
-          remage -g geom-l200-test.gdml -- "/run/initialize"
+          remage -g geom-test.gdml -- "/run/initialize"
 
   build-docs:
     name: Build documentation
