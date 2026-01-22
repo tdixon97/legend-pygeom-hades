@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from importlib import resources
-from pathlib import Path
 
 import numpy as np
 from dbetto import AttrsDict
@@ -58,7 +57,7 @@ def create_vacuum_cavity(cryostat_metadata: AttrsDict, registry: geant4.Registry
     return geant4.LogicalVolume(vacuum_cavity, cavity_material, "cavity_lv", registry)
 
 
-def create_detector(reg: geant4.Registry, ged_meta_dict: AttrsDict) -> geant4.LogicalVolume:
+def create_hpge(reg: geant4.Registry, ged_meta_dict: AttrsDict) -> geant4.LogicalVolume:
     """Construct the detector logical volume
 
     Parameters
@@ -317,139 +316,213 @@ def create_lead_castle(
             "copper_plate_height": castle_dimensions.copper_plate.height,
         }
 
+    return read_gdml_with_replacements(dummy_gdml_path, replacements, vol_name="Lead_castle")
+
+
+def create_source(
+    source_type: str, source_dims: AttrsDict, holder_dims: AttrsDict | None, from_gdml: bool = False
+) -> geant4.LogicalVolume:
+    """Create the geometry of the source.
+
+    Parameters
+    ----------
+    source_type
+        The type of source (am_collimated, am, ba, co or th)
+    source_dims
+        Metadata describing the source geometry.
+        Should be of the following format:
+
+        .. code-block:: yaml
+
+            height: 0.0
+            width: 0.0
+
+            foil:
+                height: 0.0
+                width: 0.0
+
+            al_ring:
+                height: 0.0
+                width_max: 0.0
+                width_min: 0.0
+
+            capsule:
+                width: 0.0
+                depth: 0.0
+                height: 0.0
+
+            collimator:
+                width: 0.0
+                depth: 0.0
+                height: 0.0
+                beam_width: 0.0
+                beam_height: 0.0
+                window: 0.0
+
+            epoxy:
+                height: 0.0
+                width: 0.0
+
+            plates:
+                height: 0.0
+                width: 0.0
+                cavity_width: 0.0
+
+            offset_height: 0.0
+
+    holder_dims
+        Dimensions of the source holder (see {func}`get_source_holder`).
+
+    from_gdml
+        Whether to construct from a GDML file
+    """
+
+    if not from_gdml:
+        msg = "cannot construct geometry without the gdml for now"
+        raise RuntimeError(msg)
+
+    dummy_gdml_path = resources.files("pygeomhades") / "models" / "dummy" / f"source_{source_type}_dummy.gdml"
+
+    source = source_dims
+
+    if source_type == "am_collimated":
+        replacements = {
+            "source_height": source["height"],
+            "source_width": source["width"],
+            "source_capsule_height": source["capsule"]["height"],
+            "source_capsule_width": source["capsule"]["width"],
+            "window_source": source["collimator"]["window"],
+            "collimator_height": source["collimator"]["height"],
+            "collimator_depth": source["collimator"]["depth"],
+            "collimator_width": source["collimator"]["width"],
+            "collimator_beam_height": source["collimator"]["beam_height"],
+            "collimator_beam_width": source["collimator"]["beam_width"],
+        }
+    elif source_type == "am":
+        replacements = {
+            "source_height": source["height"],
+            "source_width": source["width"],
+            "source_capsule_height": source["capsule"]["height"],
+            "source_capsule_width": source["capsule"]["width"],
+            "source_capsule_depth": source["capsule"]["depth"],
+        }
+    elif source_type in ["ba", "co"]:
+        replacements = {
+            "source_height": source["height"],
+            "source_width": source["width"],
+            "source_foil_height": source["foil"]["height"],
+            "source_Alring_height": source["al_ring"]["height"],
+            "source_Alring_width_min": source["al_ring"]["width_min"],
+            "source_Alring_width_max": source["al_ring"]["width_max"],
+        }
+    elif source_type == "th":
+        source_holder = holder_dims
+
+        replacements = {
+            "source_height": source["height"],
+            "source_width": source["width"],
+            "source_capsule_height": source["capsule"]["height"],
+            "source_capsule_width": source["capsule"]["width"],
+            "source_epoxy_height": source["epoxy"]["height"],
+            "source_epoxy_width": source["epoxy"]["width"],
+            "CuSource_holder_height": source_holder["copper"]["height"],
+            "CuSource_holder_width": source_holder["copper"]["width"],
+            "CuSource_holder_cavity_width": source_holder["copper"]["cavity_width"],
+            "CuSource_holder_bottom_height": source_holder["copper"]["bottom_height"],
+            "CuSource_holder_bottom_width": source_holder["copper"]["bottom_width"],
+            "source_offset_height": source["offset_height"],
+        }
+    else:
+        msg = f"source type of {source_type} is not defined."
+        raise RuntimeError(msg)
+
     return read_gdml_with_replacements(dummy_gdml_path, replacements)
 
 
-def create_source(config: dict, from_gdml: bool = False) -> geant4.LogicalVolume:
-    if from_gdml:
-        source = dim.source
-        source_holder = dim.source_holder
-        if config["source"] == "am_collimated":
-            dummy_gdml_path = Path(__file__).parent / "models/dummy/source_am_collimated_dummy.gdml"
-            replacements = {
-                "source_height": source["height"],
-                "source_width": source["width"],
-                "source_capsule_height": source["capsule"]["height"],
-                "source_capsule_width": source["capsule"]["width"],
-                "window_source": source["collimator"]["window"],
-                "collimator_height": source["collimator"]["height"],
-                "collimator_depth": source["collimator"]["depth"],
-                "collimator_width": source["collimator"]["width"],
-                "collimator_beam_height": source["collimator"]["beam_height"],
-                "collimator_beam_width": source["collimator"]["beam_width"],
-            }
-        elif config["source"] == "am":
-            dummy_gdml_path = Path(__file__).parent / "models/dummy/source_am_dummy.gdml"
-            replacements = {
-                "source_height": source["height"],
-                "source_width": source["width"],
-                "source_capsule_height": source["capsule"]["height"],
-                "source_capsule_width": source["capsule"]["width"],
-                "source_capsule_depth": source["capsule"]["depth"],
-            }
-        elif config["source"] in ["ba", "co"]:
-            dummy_gdml_path = Path(__file__).parent / f"models/dummy/source_{config['source']}_dummy.gdml"
-            replacements = {
-                "source_height": source["height"],
-                "source_width": source["width"],
-                "source_foil_height": source["foil"]["height"],
-                "source_Alring_height": source["al_ring"]["height"],
-                "source_Alring_width_min": source["al_ring"]["width_min"],
-                "source_Alring_width_max": source["al_ring"]["width_max"],
-            }
-        elif config["source"] == "th":
-            dummy_gdml_path = Path(__file__).parent / "models/dummy/source_th_dummy.gdml"
-            replacements = {
-                "source_height": source["height"],
-                "source_width": source["width"],
-                "source_capsule_height": source["capsule"]["height"],
-                "source_capsule_width": source["capsule"]["width"],
-                "source_epoxy_height": source["epoxy"]["height"],
-                "source_epoxy_width": source["epoxy"]["width"],
-                "CuSource_holder_height": source_holder["copper"]["height"],
-                "CuSource_holder_width": source_holder["copper"]["width"],
-                "CuSource_holder_cavity_width": source_holder["copper"]["cavity_width"],
-                "CuSource_holder_bottom_height": source_holder["copper"]["bottom_height"],
-                "CuSource_holder_bottom_width": source_holder["copper"]["bottom_width"],
-                "source_offset_height": source["offset_height"],
-            }
-        else:
-            msg = "only 5 sources have been defined"
-            raise RuntimeError(msg)
-        source_lv = amend_gdml(dummy_gdml_path, replacements).getWorldVolume()
-    else:
-        # TODO: add the construction of geometry
+def create_th_plate(source_dims: AttrsDict, from_gdml: bool = False) -> geant4.LogicalVolume:
+    """Construct the plate for the Th source
+
+    Parameters
+    ----------
+    source_dims
+        See {func}`create_source` for more information.
+    from_gdml
+        Whether to construct from a GDML file
+
+    """
+    if not from_gdml:
         msg = "cannot construct geometry without the gdml for now"
         raise RuntimeError(msg)
-    return source_lv
+
+    dummy_gdml_path = resources.files("pygeomhades") / "models" / "dummy" / "source_th_plates_dummy.gdml"
+    source = source_dims
+    replacements = {
+        "source_plates_height": source["plates"]["height"],
+        "source_plates_width": source["plates"]["width"],
+        "source_plates_cavity_width": source["plates"]["cavity_width"],
+    }
+
+    return read_gdml_with_replacements(dummy_gdml_path, replacements)
 
 
-def create_th_plate(from_gdml: bool = False) -> geant4.LogicalVolume:
-    if from_gdml:
-        dummy_gdml_path = Path(__file__).parent / "models/dummy/source_th_plates_dummy.gdml"
-        source = dim.source
+def create_source_holder(
+    source_type: str, holder_dims: AttrsDict, meas_type: str = "lat", from_gdml: bool = False
+) -> geant4.LogicalVolume:
+    """Get the source holder geometry."""
+
+    if not from_gdml:
+        msg = "cannot construct geometry without the gdml for now"
+        raise RuntimeError(msg)
+
+    source_holder = holder_dims
+
+    if source_type == "th" and meas_type == "lat":
+        dummy_gdml_path = (
+            resources.files("pygeomhades") / "models" / "dummy" / "source_holder_th_lat_dummy.gdml"
+        )
         replacements = {
-            "source_plates_height": source["plates"]["height"],
-            "source_plates_width": source["plates"]["width"],
-            "source_plates_cavity_width": source["plates"]["cavity_width"],
+            "cavity_source_holder_height": source_holder["lat"]["cavity_height"],
+            "source_holder_height": source_holder["lat"]["height"],
+            "source_holder_outer_width": source_holder["outer_width"],
+            "source_holder_inner_width": source_holder["inner_width"],
+            "cavity_source_holder_width": source_holder["holder_width"],
         }
-        th_plate_lv = amend_gdml(dummy_gdml_path, replacements).getWorldVolume()
-    else:
-        # TODO: add the construction of geometry
-        msg = "cannot construct geometry without the gdml for now"
-        raise RuntimeError(msg)
-    return th_plate_lv
 
+    elif source_type in ["am_collimated", "ba", "co", "th"]:
+        dummy_gdml_path = resources.files("pygeomhades") / "models" / "dummy" / "source_holder_dummy.gdml"
 
-def create_source_holder(config: dict, from_gdml: bool = False) -> geant4.LogicalVolume:
-    if from_gdml:
-        source_holder = dim.source_holder
-        if config["source"] == "th" and config["measurement_type"] == "lat":
-            dummy_gdml_path = Path(__file__).parent / "models/dummy/source_holder_th_lat_dummy.gdml"
-            replacements = {
-                "cavity_source_holder_height": source_holder["lat"]["cavity_height"],
-                "source_holder_height": source_holder["lat"]["height"],
-                "source_holder_outer_width": source_holder["outer_width"],
-                "source_holder_inner_width": source_holder["inner_width"],
-                "cavity_source_holder_width": source_holder["holder_width"],
-            }
-        elif config["source"] in ["am_collimated", "ba", "co", "th"]:
-            dummy_gdml_path = Path(__file__).parent / "models/dummy/source_holder_dummy.gdml"
-            replacements = {
-                "source_holder_top_plate_height": source_holder["top"]["top_plate_height"],
-                "source_holder_top_height": source_holder["top"]["top_height"],
-                "source_holder_topbottom_height": source_holder["top"]["top_bottom_height"],
-                "source_holder_top_plate_width": source_holder["top"]["top_plate_width"],
-                "source_holder_top_inner_width": source_holder["top"]["top_inner_width"],
-                "source_holder_inner_width": source_holder["inner_width"],
-                "source_holder_bottom_inner_width": source_holder["top"]["bottom_inner_width"],
-                "source_holder_outer_width": source_holder["outer_width"],
-                "position_source_fromcryostat_z": dim.positions_from_cryostat["source"]["z"],
-            }
-        elif config["source"] == "am":
-            dummy_gdml_path = Path(__file__).parent / "models/dummy/source_holder_am_dummy.gdml"
-            replacements = {
-                "source_holder_top_height": source_holder["am"]["top_height"],
-                "position_source_fromcryostat_z": dim.positions_from_cryostat["source"]["z"],
-                "source_holder_top_plate_height": source_holder["am"]["top_plate_height"],
-                "source_holder_top_plate_width": source_holder["am"]["top_plate_width"],
-                "source_holder_top_plate_depth": source_holder["am"]["top_plate_depth"],
-                "source_holder_topbottom_height": source_holder["am"]["top_bottom_height"],
-                "source_holder_top_inner_width": source_holder["am"]["top_inner_width"],
-                "source_holder_top_inner_depth": source_holder["am"]["top_inner_depth"],
-                "source_holder_inner_width": source_holder["inner_width"],
-                "source_holder_bottom_inner_width": source_holder["am"]["bottom_inner_width"],
-                "source_holder_outer_width": source_holder["outer_width"],
-            }
-        else:
-            msg = "source not in available sources"
-            raise RuntimeError(msg)
-        s_holder_lv = amend_gdml(dummy_gdml_path, replacements).getWorldVolume()
+        replacements = {
+            "source_holder_top_plate_height": source_holder["top"]["top_plate_height"],
+            "source_holder_top_height": source_holder["top"]["top_height"],
+            "source_holder_topbottom_height": source_holder["top"]["top_bottom_height"],
+            "source_holder_top_plate_width": source_holder["top"]["top_plate_width"],
+            "source_holder_top_inner_width": source_holder["top"]["top_inner_width"],
+            "source_holder_inner_width": source_holder["inner_width"],
+            "source_holder_bottom_inner_width": source_holder["top"]["bottom_inner_width"],
+            "source_holder_outer_width": source_holder["outer_width"],
+            "position_source_fromcryostat_z": dim.positions_from_cryostat["source"]["z"],
+        }
+    elif source_type == "am":
+        dummy_gdml_path = resources.files("pygeomhades") / "models" / "dummy" / "source_holder_am_dummy.gdml"
+
+        replacements = {
+            "source_holder_top_height": source_holder["am"]["top_height"],
+            "position_source_fromcryostat_z": dim.positions_from_cryostat["source"]["z"],
+            "source_holder_top_plate_height": source_holder["am"]["top_plate_height"],
+            "source_holder_top_plate_width": source_holder["am"]["top_plate_width"],
+            "source_holder_top_plate_depth": source_holder["am"]["top_plate_depth"],
+            "source_holder_topbottom_height": source_holder["am"]["top_bottom_height"],
+            "source_holder_top_inner_width": source_holder["am"]["top_inner_width"],
+            "source_holder_top_inner_depth": source_holder["am"]["top_inner_depth"],
+            "source_holder_inner_width": source_holder["inner_width"],
+            "source_holder_bottom_inner_width": source_holder["am"]["bottom_inner_width"],
+            "source_holder_outer_width": source_holder["outer_width"],
+        }
     else:
-        # TODO: add the construction of geometry
-        msg = "cannot construct geometry without the gdml for now"
+        msg = f"source type {source_type} not implemented."
         raise RuntimeError(msg)
-    return s_holder_lv
+
+    return read_gdml_with_replacements(dummy_gdml_path, replacements)
 
 
 def create_cryostat(cryostat_meta: AttrsDict, from_gdml: bool = False) -> geant4.LogicalVolume:

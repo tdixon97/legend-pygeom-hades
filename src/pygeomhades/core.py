@@ -16,8 +16,8 @@ from pygeomhades import dimensions as dim
 from pygeomhades.create_volumes import (
     create_bottom_plate,
     create_cryostat,
-    create_detector,
     create_holder,
+    create_hpge,
     create_lead_castle,
     create_source,
     create_source_holder,
@@ -174,8 +174,10 @@ def construct(
         reg.addVolumeRecursive(pv)
 
     if "detector" in assemblies:
-        detector_lv = create_detector(reg, hpge_meta)
+        detector_lv = create_hpge(reg, hpge_meta)
+
         z_pos = hpge_meta.hades.detector.position - cryostat_meta.position_cavity_from_top
+
         pv = _place_pv(detector_lv, hpge_meta.name, cavity_lv, reg, z_in_mm=z_pos)
 
     if "cryostat" in assemblies:
@@ -201,28 +203,22 @@ def construct(
         reg.addVolumeRecursive(pv)
 
     if "source" in assemblies:
-        source_lv = create_source(config, from_gdml=True)
-        geant4.PhysicalVolume(
-            [0, 0, 0],
-            [0, 0, -dim.positions_from_cryostat["source"]["z"], "mm"],
-            source_lv,
-            "source_pv",
-            world_lv,
-            registry=reg,
-        )
+        source_type = config["source"]
+        source_dims = dim.get_source_metadata(source_type)
+        holder_dims = {}
 
-        if config["source"] == "tl":
-            th_plate_lv = create_th_plate(from_gdml=True)
-            geant4.PhysicalVolume(
-                [0, 0, 0],
-                [0, 0, 0, "mm"],
-                th_plate_lv,
-                "th_plate_pv",
-                world_lv,
-                registry=reg,
-            )
+        source_lv = create_source(source_type, source_dims, holder_dims, from_gdml=True)
+        z_pos = hpge_meta.hades.source.z.position
+
+        pv = _place_pv(source_lv, "source_pv", world_lv, reg, z_in_mm=z_pos)
+
+        if config["source"] == "th":
+            th_plate_lv = create_th_plate(source_dims, from_gdml=True)
+            pv = _place_pv(th_plate_lv, "th_plate_pv", world_lv, reg)
 
     if "source_holder" in assemblies:
+        holder_dims = {}
+
         s_holder_lv = create_source_holder(config, from_gdml=True)
         geant4.PhysicalVolume(
             [0, 0, 0],

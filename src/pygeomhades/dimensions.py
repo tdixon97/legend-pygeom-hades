@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 from dbetto import AttrsDict
 
 
@@ -91,26 +89,6 @@ source_holder = {
     "outer_width": 0.0,
 }
 
-source = {
-    "height": 0.0,
-    "width": 0.0,
-    "foil": {"height": 0.0, "width": 0.0},
-    "al_ring": {"height": 0.0, "width_max": 0.0, "width_min": 0.0},
-    "capsule": {"width": 0.0, "depth": 0.0, "height": 0.0},
-    "collimator": {
-        "width": 0.0,
-        "depth": 0.0,
-        "height": 0.0,
-        "beam_width": 0.0,
-        "beam_height": 0.0,
-        "window": 0.0,
-    },
-    "epoxy": {"height": 0.0, "width": 0.0},
-    "plates": {"height": 0.0, "width": 0.0, "cavity_width": 0.0},
-    "offset_height": 0.0,  # only used in the th
-    "gdml_dummy": "",
-}
-
 
 def get_castle_dimensions(table_num: int) -> AttrsDict:
     """Extract the lead castle dimensions for a given table.
@@ -180,84 +158,97 @@ def get_castle_dimensions(table_num: int) -> AttrsDict:
     return AttrsDict(lead_castle)
 
 
-def update_dims(hpge_meta: Mapping, config: Mapping) -> None:
-    if config["source"] == "am_collimated":
-        source["height"] = 2.0
-        source["width"] = 1.0
+def get_source_metadata(source_type: str, meas_type: str = "") -> AttrsDict:
+    """Get the dimensions of the source and colimator.
 
-        source["capsule"]["width"] = 20
-        source["capsule"]["depth"] = None
-        source["capsule"]["height"] = 10.0
+    Parameters
+    ----------
+    source_type
+        The type of source (am_collimated, am, ba, co or th)
+    meas_type
+        The measurement (for th only) either lat or top.
+    """
+    if source_type == "am_collimated":
+        source = {
+            "height": 2.0,
+            "width": 1.0,
+            "capsule": {
+                "width": 20,
+                "depth": None,
+                "height": 10,
+            },
+            "collimator": {
+                "width": 30,
+                "depth": 30,
+                "height": 65,
+                "beam_height": 25.6,
+                "beam_width": 1.0,
+                "window": 0.2,
+            },
+        }
+    elif source_type == "am":
+        source = {
+            "height": 0.1,
+            "width": 1.0,
+            "capsule": {
+                "width": 11.08,
+                "depth": 23.08,
+                "height": 2.02,
+            },
+        }
+    elif source_type == "co":
+        source = {
+            "height": 0.1,
+            "width": 5.0,
+            "foil": {"width": 20, "height": 0.5},
+            "al_ring": {"height": 3.0, "width_max": 30, "width_min": 20},
+        }
+    elif source_type == "ba":
+        source = {
+            "height": 0.1,
+            "width": 5.0,
+            "foil": {
+                "width": 26.0,
+                "height": 0.5,
+            },
+            "al_ring": {"height": 3.0, "width_max": 30, "width_min": 26},
+        }
 
-        source["collimator"]["width"] = 30.0
-        source["collimator"]["depth"] = 30.0
-        source["collimator"]["height"] = 65.0
+    elif source_type == "th":
+        source = {
+            "height": 1.0,
+            "width": 1.0,
+            "capsule": {
+                "height": 7.0,
+                "width": 2.0,
+            },
+            "epoxy": {"height": 2.2, "width": 1.6},
+            "plates": {"height": 2.0, "width": 8.0, "cavity_width": 2.0},
+            "collimator": {
+                "height": 30.0,
+                "depth": 30.0,
+                "width": 30.0,
+                "beam_height": 15.0,
+                "beam_width": 1.0,
+            },
+        }
 
-        source["collimator"]["beam_width"] = 1.0
-        source["collimator"]["beam_height"] = 25.6
-        source["collimator"]["window"] = 0.2
-
-    elif config["source"] == "am":
-        source["height"] = 0.1
-        source["width"] = 1.0
-
-        source["capsule"]["width"] = 11.08
-        source["capsule"]["depth"] = 23.08
-        source["capsule"]["height"] = 2.02
-
-    elif config["source"] == "co":
-        source["height"] = 0.1
-        source["width"] = 5.0
-
-        source["foil"]["width"] = 20.0
-
-        source["foil"]["height"] = 0.5
-        source["al_ring"]["height"] = 3.0
-
-        source["al_ring"]["width_max"] = 30.0
-        source["al_ring"]["width_min"] = 20.0
-
-    elif config["source"] == "ba":
-        source["height"] = 0.1
-        source["width"] = 5.0
-
-        source["foil"]["width"] = 26.0
-        source["foil"]["height"] = 0.5
-
-        source["al_ring"]["height"] = 3.0
-        source["al_ring"]["width_max"] = 30.0
-        source["al_ring"]["width_min"] = 26.0
-
-    elif config["source"] == "th":
-        source["height"] = 1.0
-        source["width"] = 1.0
-
-        source["capsule"]["height"] = 7.0
-        source["capsule"]["width"] = 2.0
-        source["epoxy"]["height"] = 2.2
-        source["epoxy"]["width"] = 1.6
-        source["plates"]["height"] = 2.0
-        source["plates"]["width"] = 8.0
-        source["plates"]["cavity_width"] = 2.0
-
-        source["collimator"]["height"] = 30.0
-        source["collimator"]["depth"] = 30.0
-        source["collimator"]["width"] = 30.0
-        source["collimator"]["beam_height"] = 15.0
-        source["collimator"]["beam_width"] = 1.0
-
-        if config["measurement_type"] == "top":
+        if meas_type == "top":
             source["offset_height"] = 0.0
-        elif config["measurement_type"] == "lat":
+        elif meas_type == "lat":
             source["offset_height"] = 18.0
         else:
             msg = "can only have top or lat measurements"
             raise RuntimeError(msg)
     else:
-        msg = "only configured 5 source types"
+        msg = f"source type can only be am_collimated, ba, co, am or th not {source_type}"
         raise RuntimeError(msg)
 
-    if config["source"] in ["co", "ba", "am_collimated"]:
+    return AttrsDict(source)
+
+
+def get_source_holder(source_type, meas_type):
+    if source_type in ["co", "ba", "am_collimated"]:
         source_holder["top"]["top_plate_height"] = 3.0
         source_holder["top"]["top_plate_width"] = 30.0
         source_holder["top"]["top_height"] = 10.0
@@ -268,7 +259,7 @@ def update_dims(hpge_meta: Mapping, config: Mapping) -> None:
         source_holder["outer_width"] = 108.0
         source_holder["inner_width"] = 87.0
 
-    elif config["source"] == "am":
+    elif source_type == "am":
         source_holder["outer_width"] = 108.0
         source_holder["inner_width"] = 87.0
 
@@ -281,14 +272,14 @@ def update_dims(hpge_meta: Mapping, config: Mapping) -> None:
         source_holder["am"]["top_plate_depth"] = 23.08
         source_holder["am"]["top_plate_height"] = 2.0
 
-    elif config["source"] == "th":
+    elif source_type == "th":
         source_holder["copper"]["height"] = 30.0
         source_holder["copper"]["height"] = 32.0
         source_holder["copper"]["cavity_width"] = 3.0
         source_holder["copper"]["bottom_height"] = 3.0
         source_holder["copper"]["bottom_width"] = 50.0
 
-        if config["measurement_type"] == "lat":
+        if meas_type == "lat":
             source_holder["outer_width"] = 181.6
             source_holder["inner_width"] = 101.6
             source_holder["lat"]["height"] = 65.0

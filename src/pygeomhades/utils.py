@@ -36,9 +36,8 @@ def merge_configs(diode_meta: AttrsDict, extra_meta: Mapping, *, extra_name: str
 
 
 def read_gdml_with_replacements(
-    dummy_gdml_path: Path,
-    replacements: Mapping,
-) -> geant4.LogicalVolume:
+    dummy_gdml_path: Path, replacements: Mapping, vol_name: str | None = None
+) -> geant4.LogicalVolume | dict[str, geant4.LogicalVolume]:
     """Read a GDML file including replacements.
 
     Parameters
@@ -61,8 +60,6 @@ def read_gdml_with_replacements(
 
         reg_tmp = reader.getRegistry()
 
-    if len(reg_tmp.logicalVolumeList) != 1:
-        msg = f"The GDML file should contain one logical volume not {reg_tmp.logicalVolumeDict.keys()}"
-        raise RuntimeError(msg)
-
-    return next(iter(reg_tmp.logicalVolumeDict.values()))
+    if len(reg_tmp.logicalVolumeList) == 1:
+        return next(iter(reg_tmp.logicalVolumeDict.values()))
+    return reg_tmp.logicalVolumeDict[vol_name]
