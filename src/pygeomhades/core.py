@@ -248,7 +248,7 @@ def construct(
             meas_type=position,
             from_gdml=True,
         )
-    if source_type != "am_HS1":
+    if source_type != "am_collimated":
         #insert bottom plate and lead castle only for Static measurements
         
         plate_meta = dim.get_bottom_plate_metadata()
