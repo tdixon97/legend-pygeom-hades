@@ -33,7 +33,17 @@ from pygeomhades.utils import merge_configs, parse_measurement
 log = logging.getLogger(__name__)
 
 
-DEFAULT_ASSEMBLIES = {"hpge", "lead_castle"}
+DEFAULT_ASSEMBLIES = {
+    "vacuum_cavity",
+    #"bottom_plate",
+    #"lead_castle",
+    "cryostat",
+    "holder",
+    "wrap",
+    "detector",
+    # "source",
+    # "source_holder",
+}
 
 
 def _place_pv(
@@ -203,32 +213,6 @@ def construct(
         cryo_lv = create_cryostat(cryostat_meta, from_gdml=True)
         cryo_lv.pygeom_color_rgba = [0.0, 0.2, 0.8, 0.3]
 
-        pv = _place_pv(cryo_lv, "cryo_pv", lab_lv, reg)
-        reg.addVolumeRecursive(pv)
-
-    if "lead_castle" in assemblies:
-        # construct the bottom plate
-        plate_meta = dim.get_bottom_plate_metadata()
-        plate_lv = create_bottom_plate(plate_meta, from_gdml=True)
-        plate_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
-
-        z_pos = cryostat_meta.position_from_bottom + plate_meta.height / 2.0
-        pv = _place_pv(plate_lv, "plate_pv", lab_lv, reg, z_in_mm=z_pos)
-        reg.addVolumeRecursive(pv)
-
-        # construct the lead castle
-        table = config.get("lead_castle_idx", 1)
-        castle_dims = dim.get_castle_dimensions(table)
-        castle_lv = create_lead_castle(table, castle_dims, from_gdml=True)
-        castle_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
-
-        z_pos = cryostat_meta.position_from_bottom - castle_dims.base.height / 2.0
-        pv = _place_pv(castle_lv, "castle_pv", lab_lv, reg, z_in_mm=z_pos)
-        reg.addVolumeRecursive(pv)
-
-        if table == 2:
-            reg.logicalVolumeDict["Copper_plate"].pygeom_color_rgba = [0.8, 0.6, 0.4, 0.2]
-
     if "source" in assemblies:
         if not construct_unverified:
             msg = (
@@ -264,6 +248,24 @@ def construct(
             meas_type=position,
             from_gdml=True,
         )
+    if source_type != "am_HS1":
+        #insert bottom plate and lead castle only for Static measurements
+        
+        plate_meta = dim.get_bottom_plate_metadata()
+        plate_lv = create_bottom_plate(plate_meta, from_gdml=True)
+
+        z_pos = cryostat_meta.position_from_bottom + plate_meta.height / 2.0
+        pv = _place_pv(plate_lv, "plate_pv", world_lv, reg, z_in_mm=z_pos)
+        reg.addVolumeRecursive(pv)
+
+        table = config["lead_castle"]
+        castle_dims = dim.get_castle_dimensions(table)
+        castle_lv = create_lead_castle(table, castle_dims, from_gdml=True)
+
+        z_pos = cryostat_meta.position_from_bottom - castle_dims.base.height / 2.0
+        pv = _place_pv(castle_lv, "castle_pv", world_lv, reg, z_in_mm=z_pos)
+        reg.addVolumeRecursive(pv)
+
 
         # TODO: this will break so we need to change it
         z_pos = -(hpge_meta.hades.source.z.position + holder_dims.source.top_plate_height / 2)
