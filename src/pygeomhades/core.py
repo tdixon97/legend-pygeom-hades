@@ -42,8 +42,8 @@ DEFAULT_ASSEMBLIES = {
     "holder",
     "wrap",
     "detector",
-    # "source",
-    # "source_holder",
+     "source",
+    #"source_holder",
 }
 
 
@@ -152,6 +152,7 @@ def construct(
             "zPosition": 3.0
         }
 
+    source_type = config["measurement"][:6]
     hpge_name = config["hpge_name"]
     position = config["measurement"][7:10]
     diode_meta = lmeta.hardware.detectors.germanium.diodes[hpge_name]
@@ -227,7 +228,6 @@ def construct(
         cryo_lv.pygeom_color_rgba = [0.0, 0.2, 0.8, 0.3]
 
     if "source" in assemblies:
-        source_type = config["measurement"][:6]
         source_dims = dim.get_source_metadata(source_type)
         holder_dims = dim.get_source_holder_metadata(source_type, position)
 
@@ -242,14 +242,27 @@ def construct(
             pv = _place_pv(th_plate_lv, "th_plate_pv", lab_lv, reg)
             reg.addVolumeRecursive(pv)
 
-        s_holder_lv = create_source_holder(
-            source_type,
-            holder_dims,
-            source_z=hpge_meta.hades.source.z.position,
-            meas_type=position,
-            from_gdml=True,
+    if source_type != "am_HS1":
+        #add source holder
+        holder_dims = {}
+        s_holder_lv = create_source_holder(config, from_gdml=True)
+        geant4.PhysicalVolume(
+            [0, 0, 0],
+            [
+                0,
+                0,
+                -(
+                    dim.positions_from_cryostat["source"]["z"]
+                    + dim.source_holder["top"]["top_plate_height"] / 2
+                ),  # TODO: this will break so we need to change it
+                "mm",
+            ],
+            s_holder_lv,
+            "s_holder_pv",
+            world_lv,
+            registry=reg,
         )
-    if source_type != "am_collimated":
+    
         #insert bottom plate and lead castle only for Static measurements
         
         plate_meta = dim.get_bottom_plate_metadata()
