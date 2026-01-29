@@ -147,7 +147,7 @@ def construct(
             "hpge_name": "V07302A",
             "campaign": "c1",
             "measurement": "am_HS1_top_dlt",
-            "run": 1,
+            "run": "0001",
             "phi_position":0.0,
             "r_position": 57.5,
             "z_position": 3.0

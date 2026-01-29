@@ -370,8 +370,6 @@ def create_source(
 
     dummy_gdml_path = resources.files("pygeomhades") / "models" / "dummy" / f"source_{source_type}_dummy.gdml"
 
-    source = source_dims
-
     if source_type == "am_HS1":
         replacements = {
             "source_height": source_dims.height,
@@ -403,9 +401,6 @@ def create_source(
             "source_Alring_width_max": source_dims.al_ring.width_max,
         }
     elif source_type == "th_HS2":
-        source_holder = holder_dims
-
-    elif source_type == "th":
         replacements = {
             "source_height": source_dims.height,
             "source_width": source_dims.width,
@@ -420,7 +415,6 @@ def create_source(
             "CuSource_holder_bottom_width": holder_dims.copper.bottom_width,
             "source_offset_height": source_dims.offset_height,
         }
-
     else:
         msg = f"source type of {source_type} is not defined."
         raise RuntimeError(msg)
