@@ -15,21 +15,21 @@ def ask_and_print_runs(node: Any) -> None:
 def check_source_position(
     node: Any,
     user_positions: list[float],
-    measurement: str,
-    detector: str,
-    campaign: str
+    hpge_name: str,
+    campaign: str,
+    measurement: str
 ) -> None:
     
     phi_position, r_position, z_position = user_positions[0], user_positions[1], user_positions[2]
     phi_pos= list(node.group("source_position.phi_in_deg").keys())
     if phi_position not in phi_pos:
-        print(f"Position ERROR: Provided phi position {phi_position} not found in the database for the given measurement {detector}/{campaign}/{measurement}.\n" 
+        print(f"Position ERROR: Provided phi position {phi_position} not found in the database for the given measurement {hpge_name}/{campaign}/{measurement}.\n" 
         "Available phi positions are: " + str(phi_pos))
         ans = input("Do you want to see the full list of available runs, runXXXX: [phi, x, z] ? [y/N]: ").strip().lower()
         if ans in ("y", "yes"):
             for run in node.keys():
                 print(f"{run}:  {list(getattr(node, run).source_position.values())}")
-        raise ValueError(f"Provided phi position {phi_position} not found in the database for the given measurement {detector}/{campaign}/{measurement}.")
+        raise ValueError(f"Provided phi position {phi_position} not found in the database for the given measurement {hpge_name}/{campaign}/{measurement}.")
     else:
         data = node.group("source_position.phi_in_deg").get(phi_position)
         r_available=[]
@@ -65,22 +65,22 @@ def check_source_position(
                         run = data.get('run')
                     return run
         if not any(matched_r):
-            print(f"Position ERROR: Provided r position {r_position} not found in the database for the given measurement {detector}/{campaign}/{measurement}.\n" 
+            print(f"Position ERROR: Provided r position {r_position} not found in the database for the given measurement {hpge_name}/{campaign}/{measurement}.\n" 
             "For the provided phi position " + str(phi_position) +"\n"
             "the available r positions are: " + str(r_available))
             ask_and_print_runs(node)
-            raise ValueError(f"Provided r position {r_position} not found in the database for the given measurement  {detector}/{campaign}/{measurement}.")
+            raise ValueError(f"Provided r position {r_position} not found in the database for the given measurement  {hpge_name}/{campaign}/{measurement}.")
         if matched_z==False:
-            print(f"Position ERROR: Provided z position {z_position} not found in the database for the given measurement  {detector}/{campaign}/{measurement}.\n" 
+            print(f"Position ERROR: Provided z position {z_position} not found in the database for the given measurement  {hpge_name}/{campaign}/{measurement}.\n" 
             "For the provided phi position " + str(phi_position) +" and r position " + str(r_position) +"\n"
             "the available z positions are: " + str(z_available))
             ask_and_print_runs(node)
-            raise ValueError(f"Provided z position {z_position} not found in the database for the given measurement  {detector}/{campaign}/{measurement}.")
+            raise ValueError(f"Provided z position {z_position} not found in the database for the given measurement  {hpge_name}/{campaign}/{measurement}.")
 
 
 def set_source_position(config: dict) -> tuple[str, list, list]:
 
-    detector    = config["detector"]
+    hpge_name    = config["hpge_name"]
     campaign    = config["campaign"]
     measurement = config["measurement"]
     run         = config["run"]
@@ -89,7 +89,7 @@ def set_source_position(config: dict) -> tuple[str, list, list]:
     z_position  = config["z_position"]
     
     MetaDataPath="/global/cfs/cdirs/m2676/data/teststands/hades/prodenv/ref/v1.0.0/inputs/hardware/config"
-    MeasurementPath=MetaDataPath+"/"+detector+"/"+campaign+"/"+measurement+".yaml"
+    MeasurementPath=f"{MetaDataPath}/{hpge_name}/{campaign}/{measurement}.yaml"
     if not os.path.isfile(MeasurementPath):
         raise FileNotFoundError(f"The measurement {MeasurementPath} does not exist. Please check the configuration file and metadata.")
 
@@ -99,7 +99,7 @@ def set_source_position(config: dict) -> tuple[str, list, list]:
 
 
     db = TextDB(MetaDataPath)
-    node = getattr(db, detector)
+    node = getattr(db, hpge_name)
     node = getattr(node, campaign)
     node = getattr(node, measurement)
 
@@ -117,7 +117,7 @@ def set_source_position(config: dict) -> tuple[str, list, list]:
     else: #the user knows the source position
         user_positions = [phi_position, r_position, z_position]
 
-        run=check_source_position(node, user_positions, measurement, detector, campaign)
+        run=check_source_position(node, user_positions, hpge_name, campaign, measurement)
         run=run[:1]+run[4:]
 
     if source_type=="am_HS1" and r_position!=0: #update this condition

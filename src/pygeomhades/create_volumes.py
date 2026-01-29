@@ -424,7 +424,6 @@ def create_source(
     else:
         msg = f"source type of {source_type} is not defined."
         raise RuntimeError(msg)
-
     return read_gdml_with_replacements(dummy_gdml_path, replacements)
 
 

@@ -145,11 +145,12 @@ def construct(
     if config is None or config == {}:
         config = {
             "hpge_name": "V07302A",
+            "campaign": "c1",
             "measurement": "am_HS1_top_dlt",
             "run": 1,
-            "phiPosition":0.0,
-            "rPosition": 57.5,
-            "zPosition": 3.0
+            "phi_position":0.0,
+            "r_position": 57.5,
+            "z_position": 3.0
         }
 
     source_type = config["measurement"][:6]
