@@ -42,7 +42,7 @@ DEFAULT_ASSEMBLIES = {
     "holder",
     "wrap",
     "detector",
-     "source",
+    "source",
     #"source_holder",
 }
 

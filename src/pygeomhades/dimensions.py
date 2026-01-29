@@ -64,6 +64,33 @@ def get_cryostat_metadata(det_type: str, order: int, xtal_slice: str) -> AttrsDi
     return AttrsDict(cryostat)
 
 
+source_holder = {
+    "lat": {"height": 0.0, "cavity_height": 0.0, "cavity_width": 0.0},
+    "am_HS6": {
+        "top_height": 0.0,
+        "top_inner_width": 0.0,
+        "top_inner_depth": 0.0,
+        "bottom_inner_width": 0.0,
+        "top_bottom_height": 0.0,
+        "top_plate_width": 0.0,
+        "top_plate_depth": 0.0,
+        "top_plate_height": 0.0,
+    },
+    "copper": {"height": 0.0, "width": 0.0, "cavity_width": 0.0, "bottom_height": 0.0, "bottom_width": 0.0},
+    "top": {
+        "top_plate_height": 0.0,
+        "top_plate_width": 0.0,
+        "top_height": 0.0,
+        "top_inner_width": 0.0,
+        "bottom_inner_width": 0.0,
+        "top_bottom_height": 0.0,
+    },
+    "inner_width": 0.0,
+    "holder_width": 0.0,
+    "outer_width": 0.0,
+}
+
+
 def get_castle_dimensions(table_num: int) -> AttrsDict:
     """Extract the lead castle dimensions for a given table.
 
@@ -138,11 +165,11 @@ def get_source_metadata(source_type: str, meas_type: str = "") -> AttrsDict:
     Parameters
     ----------
     source_type
-        The type of source (am_collimated, am, ba, co or th)
+        The type of source (am_HS1, am_HS6, ba_HS4, co_HS5 or th_HS2)
     meas_type
-        The measurement (for th only) either lat or top.
+        The measurement (for th_HS2 only) either lat or top.
     """
-    if source_type == "am_collimated":
+    if source_type == "am_HS1":
         source = {
             "height": 2.0,
             "width": 1.0,
@@ -160,7 +187,7 @@ def get_source_metadata(source_type: str, meas_type: str = "") -> AttrsDict:
                 "window": 0.2,
             },
         }
-    elif source_type == "am":
+    elif source_type == "am_HS6":
         source = {
             "height": 0.1,
             "width": 1.0,
@@ -170,14 +197,14 @@ def get_source_metadata(source_type: str, meas_type: str = "") -> AttrsDict:
                 "height": 2.02,
             },
         }
-    elif source_type == "co":
+    elif source_type == "co_HS5":
         source = {
             "height": 0.1,
             "width": 5.0,
             "foil": {"width": 20, "height": 0.5},
             "al_ring": {"height": 3.0, "width_max": 30, "width_min": 20},
         }
-    elif source_type == "ba":
+    elif source_type == "ba_HS4":
         source = {
             "height": 0.1,
             "width": 5.0,
@@ -215,7 +242,7 @@ def get_source_metadata(source_type: str, meas_type: str = "") -> AttrsDict:
             msg = "can only have top or lat measurements"
             raise RuntimeError(msg)
     else:
-        msg = f"source type can only be am_collimated, ba, co, am or th not {source_type}"
+        msg = f"source type can only be am_HS1,  am_HS6, ba_HS4, co_HS5, am_HS6 or th_HS2 not {source_type}"
         raise RuntimeError(msg)
 
     return AttrsDict(source)
@@ -227,12 +254,12 @@ def get_source_holder_metadata(source_type: str, meas_type: str = "lat") -> Attr
     Parameters
     ----------
     source_type
-        The type of source (am_collimated, am, ba, co or th)
+        The type of source (am_HS1, am_HS6, ba_HS4, co_HS5 or th_HS2)
     meas_type
         The measurement (for th only) either lat or top.
     """
 
-    if source_type in ["co", "ba", "am_collimated"]:
+    if source_type in ["co_HS5", "ba_HS4", "am_HS1"]:
         source_holder = {
             "source": {
                 "top_plate_height": 3.0,
@@ -246,7 +273,7 @@ def get_source_holder_metadata(source_type: str, meas_type: str = "lat") -> Attr
             "inner_width": 87.0,
         }
 
-    elif source_type == "am":
+    elif source_type == "am_HS6":
         source_holder = {
             "source": {
                 "top_height": 10.0,
@@ -262,7 +289,7 @@ def get_source_holder_metadata(source_type: str, meas_type: str = "lat") -> Attr
             "inner_width": 87.0,
         }
 
-    elif source_type == "th":
+    elif source_type == "th_HS2":
         source_holder = {
             "source": {
                 "height": 30.0,
@@ -277,7 +304,7 @@ def get_source_holder_metadata(source_type: str, meas_type: str = "lat") -> Attr
             source_holder["inner_width"] = 101.6
             source_holder["lat"] = {"height": 65.0, "cavity_height": 60.0, "cavity_width": 50.0}
     else:
-        msg = f"Source must be co, ba, am_collimated, am or th not {source_type}"
+        msg = f"Source must be co_HS5, ba_HS4, am_HS1, am_HS6 or th_HS2 not {source_type}"
         raise RuntimeError(msg)
 
     return AttrsDict(source_holder)
