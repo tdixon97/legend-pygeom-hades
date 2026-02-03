@@ -26,7 +26,7 @@ from pygeomhades.create_volumes import (
     create_wrap,
 )
 from pygeomhades.metadata import PublicMetadataProxy
-from pygeomhades.utils import merge_configs
+from pygeomhades.utils import merge_configs, parse_measurement
 
 log = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ def _place_pv(
     lv: geant4.LogicalVolume,
     name: str,
     mother_lv: geant4.LogicalVolume,
-    reg: geant4.registry,
+    reg: geant4.Registry,
     *,
     x_in_mm: float = 0,
     y_in_mm: float = 0,
@@ -130,6 +130,9 @@ def construct(
     diode_meta = lmeta.hardware.detectors.germanium.diodes[hpge_name]
     hpge_meta = merge_configs(diode_meta, extra_meta[hpge_name])
 
+    # extract the measurement info
+    measurement_info = parse_measurement(config.measurement)
+
     reg = geant4.Registry()
 
     # Create the world volume
@@ -202,14 +205,14 @@ def construct(
             raise NotImplementedError(msg)
 
         # basic information on the source
-        source_type = config.source
-        measurement = config.measurement
+        source_type = measurement_info.source
+        position = measurement_info.position
 
         # extract some metadata
         source_dims = dim.get_source_metadata(source_type)
-        holder_dims = dim.get_source_holder_metadata(source_type, measurement)
+        holder_dims = dim.get_source_holder_metadata(source_type, position)
 
-        source_lv = create_source(source_type, holder_dims, meas_type=measurement, from_gdml=True)
+        source_lv = create_source(source_type, holder_dims, meas_type=position, from_gdml=True)
         z_pos = hpge_meta.hades.source.z.position
 
         pv = _place_pv(source_lv, "source_pv", world_lv, reg, z_in_mm=z_pos)
@@ -225,7 +228,7 @@ def construct(
             source_type,
             holder_dims,
             source_z=hpge_meta.hades.source.z.position,
-            meas_type=measurement,
+            meas_type=position,
             from_gdml=True,
         )
 

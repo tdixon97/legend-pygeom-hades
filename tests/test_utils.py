@@ -5,7 +5,7 @@ from importlib import resources
 import pyg4ometry
 
 from pygeomhades.metadata import PublicMetadataProxy
-from pygeomhades.utils import merge_configs, read_gdml_with_replacements
+from pygeomhades.utils import merge_configs, parse_measurement, read_gdml_with_replacements
 
 
 def test_merge_config():

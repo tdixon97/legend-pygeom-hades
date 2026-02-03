@@ -10,7 +10,8 @@ from pyg4ometry import gdml, geant4
 
 log = logging.getLogger(__name__)
 
-def parse_measurement(measurement:str)-> AttrsDict:
+
+def parse_measurement(measurement: str) -> AttrsDict:
     """Parse a measurement string into its components.
 
     The measurement string is expected to be in the format
@@ -30,19 +31,20 @@ def parse_measurement(measurement:str)-> AttrsDict:
         The measurement string, e.g., "am_HS1_top_dlt".
 
     """
-    
+
     split = measurement.split("_")
 
-    if (len(split) != 4):
+    if len(split) != 4:
         msg = f"Measurement string '{measurement}' is not in the expected format '{{source}}_{{HSX}}_{{position}}_{{ID}}'."
         raise ValueError(msg)
 
     out = AttrsDict({"source": split[0], "holder": split[1], "position": split[2], "id": split[3]})
 
-    if (out.source == "am" and out.holder == "HS1"):
+    if out.source == "am" and out.holder == "HS1":
         out.source = "am_collimated"
-    
+
     return out
+
 
 def merge_configs(diode_meta: AttrsDict, extra_meta: Mapping, *, extra_name: str = "hades") -> AttrsDict:
     """Merge the configs from `diode_meta` to the extra information

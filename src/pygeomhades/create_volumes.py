@@ -235,7 +235,7 @@ def create_lead_castle(
 
     Parameters
     ----------
-    table_number
+    table_num
         Which table the measurements were taken on (1 or 2).
     castle_dimensions
         The metadata describing the lead castle dimensions. This should
