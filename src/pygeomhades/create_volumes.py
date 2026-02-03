@@ -41,7 +41,6 @@ def create_vacuum_cavity(cryostat_metadata: AttrsDict, registry: geant4.Registry
         - cryostat_metadata["position_cavity_from_top"]
         - cryostat_metadata["position_cavity_from_bottom"]
     )
-    cavity_material = geant4.MaterialPredefined("G4_Galactic")
     vacuum_cavity = geant4.solid.GenericPolycone(
         "vacuum_cavity",
         0.0,
@@ -52,7 +51,7 @@ def create_vacuum_cavity(cryostat_metadata: AttrsDict, registry: geant4.Registry
         aunit="rad",
         registry=registry,
     )
-    return geant4.LogicalVolume(vacuum_cavity, cavity_material, "cavity_lv", registry)
+    return geant4.LogicalVolume(vacuum_cavity, "G4_Galactic", "cavity_lv", registry)
 
 
 def create_wrap(wrap_metadata: AttrsDict, from_gdml: bool = False) -> geant4.LogicalVolume:

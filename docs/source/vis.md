@@ -24,9 +24,3 @@ This can equivalently be set in the visualisation configuration file, but we
 provide the CLI option for convenience.
 
 :::
-
-:::{warning}
-
-Due to the way the HADES geometry is defined the "z" axis is inverted.
-
-:::
