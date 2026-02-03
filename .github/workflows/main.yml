@@ -108,7 +108,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   test_remage:
-    if: false
+    if: false # currently disabled as the public geometry is expected to have overlaps
     name: Test legend-pygeom-hades with remage
     runs-on: ubuntu-latest
     needs: build-and-test
