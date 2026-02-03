@@ -177,6 +177,12 @@ def construct(
     # construct the hpge
     detector_lv = make_hpge(hpge_meta, name=hpge_meta.name, registry=reg)
     detector_lv.pygeom_color_rgba = [0.33, 0.33, 0.33, 1.0]
+    
+    # construct the hpge, for now do not allow cylindrical asymmetry
+    detector_lv = make_hpge(
+        hpge_meta, name=hpge_meta.name, registry=reg, allow_cylindrical_asymmetry=False
+    )
+    detector_lv.pygeom_color_rgba = [0.33, 0.33, 0.33, 1.0]
 
     # an extra offset is needed to account for the different reference point
     # this is the top of the crystal in the original GDML but it's the p+ contact here
