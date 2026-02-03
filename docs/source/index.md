@@ -3,7 +3,7 @@
 Python package containing the Monte Carlo geometry implementation of the LEGEND
 HPGe characterization test stand in HADES.
 
-::: {warning} This package is currently in an early development stage! :::
+::: warning This package is currently in an early development stage! :::
 
 This geometry can be used as an input to the
 [remage](https://remage.readthedocs.io/en/stable/) simulation software.
