@@ -228,7 +228,7 @@ def create_bottom_plate(plate_metadata: AttrsDict, from_gdml: bool = True) -> ge
 
 
 def create_lead_castle(
-    table_num: int, castle_dimensions: AttrsDict, from_gdml: bool = True, volume_name: str = "Lead_castle"
+    table_num: int, castle_dimensions: AttrsDict, from_gdml: bool = True
 ) -> geant4.LogicalVolume:
     """Create the lead castle.
 
@@ -303,7 +303,7 @@ def create_lead_castle(
             "copper_plate_height": castle_dimensions.copper_plate.height,
         }
 
-    return read_gdml_with_replacements(dummy_gdml_path, replacements, vol_name=volume_name)
+    return read_gdml_with_replacements(dummy_gdml_path, replacements)
 
 
 def create_source(

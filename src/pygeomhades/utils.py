@@ -72,7 +72,7 @@ def merge_configs(diode_meta: AttrsDict, extra_meta: Mapping, *, extra_name: str
 
 
 def read_gdml_with_replacements(
-    dummy_gdml_path: Path, replacements: Mapping, vol_name: str | None = None
+    dummy_gdml_path: Path, replacements: Mapping
 ) -> geant4.LogicalVolume | dict[str, geant4.LogicalVolume]:
     """Read a GDML file including replacements.
 
@@ -92,10 +92,8 @@ def read_gdml_with_replacements(
     with tempfile.NamedTemporaryFile("w+", suffix=".gdml") as f:
         f.write(gdml_text)
         f.flush()
-        reader = gdml.Reader(f.name)
 
+        reader = gdml.Reader(f.name)
         reg_tmp = reader.getRegistry()
 
-    if len(reg_tmp.logicalVolumeList) == 1:
-        return next(iter(reg_tmp.logicalVolumeDict.values()))
-    return reg_tmp.logicalVolumeDict[vol_name]
+    return reg_tmp.worldVolume

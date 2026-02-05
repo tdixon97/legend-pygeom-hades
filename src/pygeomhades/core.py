@@ -55,7 +55,7 @@ def _place_pv(
         rot,
         [x_in_mm, y_in_mm, z_in_mm, "mm"],
         lv,
-        name,
+        name.replace("_lv", ""),  # strip _lv from name
         mother_lv,
         registry=reg,
     )
@@ -227,8 +227,7 @@ def construct(
         reg.addVolumeRecursive(pv)
 
         if table == 2:
-            msg = "For the lead castle the copper plate is not implemented!"
-            log.warning(msg)
+            reg.logicalVolumeDict["Copper_plate"].pygeom_color_rgba = [0.8, 0.6, 0.4, 0.2]
 
     if "source" in assemblies:
         if not construct_unverified:
