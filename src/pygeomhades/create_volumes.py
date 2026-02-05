@@ -307,8 +307,8 @@ def create_lead_castle(
 
 
 def create_source(
-    source_type: str, source_dims: AttrsDict, holder_dims: AttrsDict | None, from_gdml: bool = False
-) -> geant4.LogicalVolume:
+    source_type: str, source_dims: AttrsDict, holder_dims: AttrsDict | None, from_gdml: bool = True
+) -> tuple[geant4.LogicalVolume, str]:
     """Create the geometry of the source.
 
     Parameters

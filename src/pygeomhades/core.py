@@ -222,60 +222,53 @@ def construct(
         source_dims = dim.get_source_metadata(source_type)
         holder_dims = dim.get_source_holder_metadata(source_type, position)
 
-        source_lv = create_source(source_type, source_dims, holder_dims, from_gdml=True)
+        source_lv, vol_name = create_source(source_type, source_dims, holder_dims, from_gdml=True)
         run, source_position, _ = source_pos.set_source_position(config)
         x_pos, y_pos, z_pos = source_position    
-        #z_pos = hpge_meta.hades.source.z.position
         pv = _place_pv(source_lv, "source_pv", world_lv, reg, x_in_mm=x_pos, y_in_mm=y_pos, z_in_mm=z_pos)
+        print (pv, vol_name)
+        reg.addVolumeRecursive(pv)
+        print(reg.logicalVolumeDict.keys())
+        reg.logicalVolumeDict[vol_name].pygeom_color_rgba = [0.8, 0.6, 0.4, 0.2]
+        
 
         if source_type == "th_HS2":
             th_plate_lv = create_th_plate(source_dims, from_gdml=True)
             pv = _place_pv(th_plate_lv, "th_plate_pv", lab_lv, reg)
             reg.addVolumeRecursive(pv)
 
-    if source_type != "am_HS1":
-        #add source holder
-        holder_dims = {}
-        s_holder_lv = create_source_holder(config, from_gdml=True)
-        geant4.PhysicalVolume(
-            [0, 0, 0],
-            [
-                0,
-                0,
-                -(
-                    dim.positions_from_cryostat["source"]["z"]
-                    + dim.source_holder["top"]["top_plate_height"] / 2
-                ),  # TODO: this will break so we need to change it
-                "mm",
-            ],
-            s_holder_lv,
-            "s_holder_pv",
-            world_lv,
-            registry=reg,
-        )
-    
-        #insert bottom plate and lead castle only for Static measurements
-        
-        plate_meta = dim.get_bottom_plate_metadata()
-        plate_lv = create_bottom_plate(plate_meta, from_gdml=True)
+        if source_type != "am_HS1":
 
-        z_pos = cryostat_meta.position_from_bottom + plate_meta.height / 2.0
-        pv = _place_pv(plate_lv, "plate_pv", world_lv, reg, z_in_mm=z_pos)
-        reg.addVolumeRecursive(pv)
+            s_holder_lv = create_source_holder(
+                source_type,
+                holder_dims,
+                source_z=z_pos,
+                meas_type=position,
+                from_gdml=True,
+            )
 
-        table = 1 #check the single (?) measurement that wants lead castle 2
-        castle_dims = dim.get_castle_dimensions(table)
-        castle_lv = create_lead_castle(table, castle_dims, from_gdml=True)
+            z_pos_holder = -(z_pos + holder_dims.source.top_plate_height / 2)
+            pv = _place_pv(s_holder_lv, "source_holder_pv", lab_lv, reg, z_in_mm=z_pos_holder)
+            reg.addVolumeRecursive(pv)
+            
+            #insert bottom plate and lead castle only for Static measurements
+            
+            plate_meta = dim.get_bottom_plate_metadata()
+            plate_lv = create_bottom_plate(plate_meta, from_gdml=True)
+            plate_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
+            
+            z_pos = cryostat_meta.position_from_bottom + plate_meta.height / 2.0
+            pv = _place_pv(plate_lv, "plate_pv", world_lv, reg, z_in_mm=z_pos)
+            reg.addVolumeRecursive(pv)
 
-        z_pos = cryostat_meta.position_from_bottom - castle_dims.base.height / 2.0
-        pv = _place_pv(castle_lv, "castle_pv", world_lv, reg, z_in_mm=z_pos)
-        reg.addVolumeRecursive(pv)
+            table = 2 #check the single (?) measurement that wants lead castle 2
+            castle_dims = dim.get_castle_dimensions(table)
+            castle_lv = create_lead_castle(table, castle_dims, from_gdml=True)
+            castle_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
 
+            z_pos = cryostat_meta.position_from_bottom - castle_dims.base.height / 2.0
+            pv = _place_pv(castle_lv, "castle_pv", world_lv, reg, z_in_mm=z_pos)
+            reg.addVolumeRecursive(pv)
 
-        # TODO: this will break so we need to change it
-        z_pos = -(hpge_meta.hades.source.z.position + holder_dims.source.top_plate_height / 2)
-
-        pv = _place_pv(s_holder_lv, "source_holder_pv", lab_lv, reg, z_in_mm=z_pos)
-        reg.addVolumeRecursive(pv)
 
     return reg
