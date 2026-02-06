@@ -128,9 +128,9 @@ def construct(
         log.warning("CONSTRUCTING GEOMETRY FROM PUBLIC DATA ONLY")
         lmeta = PublicMetadataProxy()
 
-    position = config.measurement[7:10]
-    source_type = config.measurement[:6]
-    hpge_name = config.hpge_name
+    position = measurement[7:10]
+    source_type = measurement[:6]
+    #hpge_name = config.hpge_name
     diode_meta = lmeta.hardware.detectors.germanium.diodes[hpge_name]
     hpge_meta = merge_configs(diode_meta, extra_meta[hpge_name])
 
@@ -204,7 +204,8 @@ def construct(
         cryo_lv.pygeom_color_rgba = [0.0, 0.2, 0.8, 0.3]
 
         pv = _place_pv(cryo_lv, "cryo_pv", lab_lv, reg)
-        reg.addVolumeRecursive(pv)    
+        reg.addVolumeRecursive(pv)   
+
     if "source" in assemblies:
         source_dims = dim.get_source_metadata(source_type)
         holder_dims = dim.get_source_holder_metadata(source_type, position)
@@ -237,24 +238,25 @@ def construct(
             pv = _place_pv(s_holder_lv, "source_holder_pv", lab_lv, reg, z_in_mm=z_pos_holder)
             reg.addVolumeRecursive(pv)
             
-            #insert bottom plate and lead castle only for Static measurements
-            
-            plate_meta = dim.get_bottom_plate_metadata()
-            plate_lv = create_bottom_plate(plate_meta, from_gdml=True)
-            plate_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
-            
-            z_pos = cryostat_meta.position_from_bottom + plate_meta.height / 2.0
-            pv = _place_pv(plate_lv, "plate_pv", world_lv, reg, z_in_mm=z_pos)
-            reg.addVolumeRecursive(pv)
+            #construct lead castle and bottom plate
+            if "lead_castle" in assemblies:
 
-            table = 2 #check the single (?) measurement that wants lead castle 2
-            castle_dims = dim.get_castle_dimensions(table)
-            castle_lv = create_lead_castle(table, castle_dims, from_gdml=True)
-            castle_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
+                plate_meta = dim.get_bottom_plate_metadata()
+                plate_lv = create_bottom_plate(plate_meta, from_gdml=True)
+                plate_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
+                
+                z_pos = cryostat_meta.position_from_bottom + plate_meta.height / 2.0
+                pv = _place_pv(plate_lv, "plate_pv", world_lv, reg, z_in_mm=z_pos)
+                reg.addVolumeRecursive(pv)
 
-            z_pos = cryostat_meta.position_from_bottom - castle_dims.base.height / 2.0
-            pv = _place_pv(castle_lv, "castle_pv", world_lv, reg, z_in_mm=z_pos)
-            reg.addVolumeRecursive(pv)
+                table = 2 #check the single (?) measurement that wants lead castle 2
+                castle_dims = dim.get_castle_dimensions(table)
+                castle_lv = create_lead_castle(table, castle_dims, from_gdml=True)
+                castle_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
+
+                z_pos = cryostat_meta.position_from_bottom - castle_dims.base.height / 2.0
+                pv = _place_pv(castle_lv, "castle_pv", world_lv, reg, z_in_mm=z_pos)
+                reg.addVolumeRecursive(pv)
 
 
     return reg

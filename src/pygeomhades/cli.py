@@ -135,7 +135,7 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
     geom_opts.add_argument(
         "--assemblies",
         action="store",
-        default=["hpge", "lead_castle"],
+        default=["hpge", "source", "lead_castle"],
         help=(
             """Select the assemblies to generate in the output.
             (default: hpge and lead_castle)"""
