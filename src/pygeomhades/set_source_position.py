@@ -5,13 +5,6 @@ import os
 from typing import Any
 
 
-def ask_and_print_runs(node: Any) -> None:
-    ans = input("Do you want to see the full list of available runs, runXXXX: [phi, x, z] ? [y/N]: ").strip().lower()
-    if ans in ("y", "yes"):
-        for run in node.keys():
-            print(f"{run}:  {list(getattr(node, run).source_position.values())}")
-
-
 def check_source_position(
     node: Any,
     user_positions: list[float],
@@ -23,13 +16,13 @@ def check_source_position(
     phi_position, r_position, z_position = user_positions[0], user_positions[1], user_positions[2]
     phi_pos= list(node.group("source_position.phi_in_deg").keys())
     if phi_position not in phi_pos:
-        print(f"Position ERROR: Provided phi position {phi_position} not found in the database for the given measurement {hpge_name}/{campaign}/{measurement}.\n" 
-        "Available phi positions are: " + str(phi_pos))
-        ans = input("Do you want to see the full list of available runs, runXXXX: [phi, x, z] ? [y/N]: ").strip().lower()
-        if ans in ("y", "yes"):
-            for run in node.keys():
-                print(f"{run}:  {list(getattr(node, run).source_position.values())}")
-        raise ValueError(f"Provided phi position {phi_position} not found in the database for the given measurement {hpge_name}/{campaign}/{measurement}.")
+        raise ValueError(
+            f"Position ERROR: Provided phi position {phi_position} not found in the database "
+            f"for the given measurement {hpge_name}/{campaign}/{measurement}.\n"
+            f"Available phi positions are: {phi_pos}\n"
+            f"The full list of available runs, runXXXX: [phi, x, z] is:\n"
+            f"{run}: {list(getattr(node, run).source_position.values())}"
+        )
     else:
         data = node.group("source_position.phi_in_deg").get(phi_position)
         r_available=[]
@@ -65,18 +58,21 @@ def check_source_position(
                         run = data.get('run')
                     return run
         if not any(matched_r):
-            print(f"Position ERROR: Provided r position {r_position} not found in the database for the given measurement {hpge_name}/{campaign}/{measurement}.\n" 
-            "For the provided phi position " + str(phi_position) +"\n"
-            "the available r positions are: " + str(r_available))
-            ask_and_print_runs(node)
-            raise ValueError(f"Provided r position {r_position} not found in the database for the given measurement  {hpge_name}/{campaign}/{measurement}.")
+            raise ValueError(
+                f"Position ERROR: Provided r position {r_position} not found in the database "
+                f"for the given measurement {hpge_name}/{campaign}/{measurement}.\n"
+                f"For the provided phi position {phi_position}, the available r positions are: {r_available})"
+                f"The full list of available runs, runXXXX: [phi, x, z] is:\n"
+                f"{run}: {list(getattr(node, run).source_position.values())}"
+            )
         if matched_z==False:
-            print(f"Position ERROR: Provided z position {z_position} not found in the database for the given measurement  {hpge_name}/{campaign}/{measurement}.\n" 
-            "For the provided phi position " + str(phi_position) +" and r position " + str(r_position) +"\n"
-            "the available z positions are: " + str(z_available))
-            ask_and_print_runs(node)
-            raise ValueError(f"Provided z position {z_position} not found in the database for the given measurement  {hpge_name}/{campaign}/{measurement}.")
-
+             raise ValueError(
+                f"Position ERROR: Provided z position {z_position} not found in the database "
+                f"for the given measurement {hpge_name}/{campaign}/{measurement}.\n"
+                f"For the provided phi position {phi_position} and r position {r_position}, the available r positions are: {r_available})"
+                f"The full list of available runs, runXXXX: [phi, x, z] is:\n"
+                f"{run}: {list(getattr(node, run).source_position.values())}"
+            )
 
 def set_source_position(config: dict) -> tuple[str, list, list]:
 

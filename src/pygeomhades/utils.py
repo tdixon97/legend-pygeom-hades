@@ -40,7 +40,6 @@ def parse_measurement(measurement: str) -> AttrsDict:
         raise ValueError(msg)
 
     out = AttrsDict({"source": split[0]+"_"+split[1], "position": split[2], "id": split[3]})
-    print(out)
 
     return out
 
