@@ -36,13 +36,11 @@ def parse_measurement(measurement: str) -> AttrsDict:
     split = measurement.split("_")
 
     if len(split) != 4:
-        msg = f"Measurement string '{measurement}' is not in the expected format '{{source}}_{{HSX}}_{{position}}_{{ID}}'."
+        msg = f"Measurement string '{measurement}' is not in the expected format '{{source}}_{{position}}_{{ID}}'."
         raise ValueError(msg)
 
-    out = AttrsDict({"source": split[0], "holder": split[1], "position": split[2], "id": split[3]})
-
-    if out.source == "am" and out.holder == "HS1":
-        out.source = "am_collimated"
+    out = AttrsDict({"source": split[0]+"_"+split[1], "position": split[2], "id": split[3]})
+    print(out)
 
     return out
 
