@@ -15,13 +15,19 @@ def check_source_position(
     
     phi_position, r_position, z_position = user_positions[0], user_positions[1], user_positions[2]
     phi_pos= list(node.group("source_position.phi_in_deg").keys())
+    details = "\n".join(
+        f"{run}: {list(getattr(node, run).source_position.values())}"
+        for run in node.keys()
+    )
     if phi_position not in phi_pos:
         raise ValueError(
-            f"Position ERROR: Provided phi position {phi_position} not found in the database "
+            "Position ERROR. \n"
+            f"Provided phi position [{phi_position}] not found in the database "
             f"for the given measurement {hpge_name}/{campaign}/{measurement}.\n"
             f"Available phi positions are: {phi_pos}\n"
-            f"The full list of available runs, runXXXX: [phi, x, z] is:\n"
-            f"{run}: {list(getattr(node, run).source_position.values())}"
+            "\n"
+            f"Full list of available runs, runXXXX: [phi, x, z]\n"
+            f"{details}"
         )
     else:
         data = node.group("source_position.phi_in_deg").get(phi_position)
@@ -59,19 +65,23 @@ def check_source_position(
                     return run
         if not any(matched_r):
             raise ValueError(
-                f"Position ERROR: Provided r position {r_position} not found in the database "
+                "Position ERROR.\n"
+                f"Provided r position [{r_position}] not found in the database "
                 f"for the given measurement {hpge_name}/{campaign}/{measurement}.\n"
-                f"For the provided phi position {phi_position}, the available r positions are: {r_available})"
-                f"The full list of available runs, runXXXX: [phi, x, z] is:\n"
-                f"{run}: {list(getattr(node, run).source_position.values())}"
+                f"For the provided phi position [{phi_position}], the available r positions are: {r_available}. \n"
+                "\n"
+                f"Full list of available runs, runXXXX: [phi, x, z]\n"
+                f"{details}"
             )
         if matched_z==False:
              raise ValueError(
-                f"Position ERROR: Provided z position {z_position} not found in the database "
+                "Position ERROR.\n"
+                f"Provided z position [{z_position}] not found in the database "
                 f"for the given measurement {hpge_name}/{campaign}/{measurement}.\n"
-                f"For the provided phi position {phi_position} and r position {r_position}, the available r positions are: {r_available})"
-                f"The full list of available runs, runXXXX: [phi, x, z] is:\n"
-                f"{run}: {list(getattr(node, run).source_position.values())}"
+                f"For the provided phi position [{phi_position}] and r position [{r_position}], the available r positions are: {r_available}\n"
+                "\n"
+                "Full list of available runs, runXXXX: [phi, x, z]:\n"
+                f"{details}"
             )
 
 def set_source_position(config: dict) -> tuple[str, list, list]:
@@ -87,7 +97,8 @@ def set_source_position(config: dict) -> tuple[str, list, list]:
     MetaDataPath="/global/cfs/cdirs/m2676/data/teststands/hades/prodenv/ref/v1.0.0/inputs/hardware/config"
     MeasurementPath=f"{MetaDataPath}/{hpge_name}/{campaign}/{measurement}.yaml"
     if not os.path.isfile(MeasurementPath):
-        raise FileNotFoundError(f"The measurement {MeasurementPath} does not exist. Please check the configuration file and metadata.")
+        raise FileNotFoundError(f"The measurement {MeasurementPath} does not exist.\n"
+                                "Please check the configuration file and metadata.")
 
 
     source_type = measurement[:6]
@@ -99,13 +110,23 @@ def set_source_position(config: dict) -> tuple[str, list, list]:
     node = getattr(node, campaign)
     node = getattr(node, measurement)
 
+    details = "\n".join(
+        f"{run}: {list(getattr(node, run).source_position.values())}"
+        for run in node.keys()
+    )
+
     if run[0].isdigit(): #the user knows the run number
         run="run"+run
         try:
             node = getattr(node, run)
         except AttributeError:
-            raise ValueError(f"Run '{run}' not found in the metadata. Run names must be 4-digit strings with leading zeros, e.g., '0001'.")
-                                
+            raise ValueError(
+                f"RUN EROOR.\n"
+                "Run '{run}' not found in the metadata. \n"
+                f"Run names must be 4-digit strings with leading zeros, e.g., '0001'.\n"
+                f"Full list of available runs, runXXXX: [phi, x, z]\n"
+                f"{details}"
+                )                             
         phi_position = node.source_position.phi_in_deg
         r_position = node.source_position.r_in_mm
         z_position = node.source_position.z_in_mm
