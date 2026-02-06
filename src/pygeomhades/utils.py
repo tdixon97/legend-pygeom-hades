@@ -71,7 +71,6 @@ def merge_configs(diode_meta: AttrsDict, extra_meta: Mapping, *, extra_name: str
     return diode_meta
 
 
-
 def read_gdml_with_replacements(
     dummy_gdml_path: Path, replacements: Mapping
 ) -> geant4.LogicalVolume | dict[str, geant4.LogicalVolume]:

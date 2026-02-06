@@ -69,7 +69,6 @@ def construct(
     assemblies: list[str] | set[str] = DEFAULT_ASSEMBLIES,
     extra_meta: TextDB | Path | str | None = None,
     public_geometry: bool = False,
-    construct_unverified: bool = False,
 ) -> geant4.Registry:
     """Construct the HADES geometry and return the registry containing the world volume.
 
@@ -102,11 +101,8 @@ def construct(
     public_geometry
       if true, uses the public geometry metadata instead of the LEGEND-internal
       legend-metadata.
-    construct_unverified
-        If true, allows construction of unverified assemblies such as the source assembly.
-        Default is False.
     """
-
+    
     if extra_meta is None:
         extra_meta = TextDB(resources.files("pygeomhades") / "configs" / "holder_wrap")
     elif not isinstance(extra_meta, TextDB):
@@ -132,20 +128,9 @@ def construct(
         log.warning("CONSTRUCTING GEOMETRY FROM PUBLIC DATA ONLY")
         lmeta = PublicMetadataProxy()
 
-    if config is None or config == {}:
-        config = {
-            "hpge_name": "V07302A",
-            "campaign": "c1",
-            "measurement": "am_HS1_top_dlt",
-            "run": "0001",
-            "phi_position":0.0,
-            "r_position": 57.5,
-            "z_position": 3.0
-        }
-
-    source_type = config["measurement"][:6]
-    hpge_name = config["hpge_name"]
-    position = config["measurement"][7:10]
+    position = config.measurement[7:10]
+    source_type = config.measurement[:6]
+    hpge_name = config.hpge_name
     diode_meta = lmeta.hardware.detectors.germanium.diodes[hpge_name]
     hpge_meta = merge_configs(diode_meta, extra_meta[hpge_name])
 
@@ -218,18 +203,19 @@ def construct(
         cryo_lv = create_cryostat(cryostat_meta, from_gdml=True)
         cryo_lv.pygeom_color_rgba = [0.0, 0.2, 0.8, 0.3]
 
+        pv = _place_pv(cryo_lv, "cryo_pv", lab_lv, reg)
+        reg.addVolumeRecursive(pv)    
     if "source" in assemblies:
         source_dims = dim.get_source_metadata(source_type)
         holder_dims = dim.get_source_holder_metadata(source_type, position)
 
-        source_lv, vol_name = create_source(source_type, source_dims, holder_dims, from_gdml=True)
+        source_lv = create_source(source_type, source_dims, holder_dims, from_gdml=True)
         run, source_position, _ = source_pos.set_source_position(config)
         x_pos, y_pos, z_pos = source_position    
         pv = _place_pv(source_lv, "source_pv", world_lv, reg, x_in_mm=x_pos, y_in_mm=y_pos, z_in_mm=z_pos)
-        print (pv, vol_name)
         reg.addVolumeRecursive(pv)
-        print(reg.logicalVolumeDict.keys())
-        reg.logicalVolumeDict[vol_name].pygeom_color_rgba = [0.8, 0.6, 0.4, 0.2]
+        print(source_lv.name)
+        reg.logicalVolumeDict[source_lv.name].pygeom_color_rgba = [0.8, 0.6, 0.4, 0.2]
         
 
         if source_type == "th_HS2":

@@ -64,33 +64,6 @@ def get_cryostat_metadata(det_type: str, order: int, xtal_slice: str) -> AttrsDi
     return AttrsDict(cryostat)
 
 
-source_holder = {
-    "lat": {"height": 0.0, "cavity_height": 0.0, "cavity_width": 0.0},
-    "am_HS6": {
-        "top_height": 0.0,
-        "top_inner_width": 0.0,
-        "top_inner_depth": 0.0,
-        "bottom_inner_width": 0.0,
-        "top_bottom_height": 0.0,
-        "top_plate_width": 0.0,
-        "top_plate_depth": 0.0,
-        "top_plate_height": 0.0,
-    },
-    "copper": {"height": 0.0, "width": 0.0, "cavity_width": 0.0, "bottom_height": 0.0, "bottom_width": 0.0},
-    "top": {
-        "top_plate_height": 0.0,
-        "top_plate_width": 0.0,
-        "top_height": 0.0,
-        "top_inner_width": 0.0,
-        "bottom_inner_width": 0.0,
-        "top_bottom_height": 0.0,
-    },
-    "inner_width": 0.0,
-    "holder_width": 0.0,
-    "outer_width": 0.0,
-}
-
-
 def get_castle_dimensions(table_num: int) -> AttrsDict:
     """Extract the lead castle dimensions for a given table.
 
@@ -215,7 +188,7 @@ def get_source_metadata(source_type: str, meas_type: str = "") -> AttrsDict:
             "al_ring": {"height": 3.0, "width_max": 30, "width_min": 26},
         }
 
-    elif source_type == "th":
+    elif source_type == "th_HS2":
         source = {
             "height": 1.0,
             "width": 1.0,

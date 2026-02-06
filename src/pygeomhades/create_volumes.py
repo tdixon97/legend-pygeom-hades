@@ -307,8 +307,8 @@ def create_lead_castle(
 
 
 def create_source(
-    source_type: str, source_dims: AttrsDict, holder_dims: AttrsDict | None, from_gdml: bool = True
-) -> tuple[geant4.LogicalVolume, str]:
+    source_type: str, source_dims: AttrsDict, holder_dims: AttrsDict | None, from_gdml: bool = False
+) -> geant4.LogicalVolume:
     """Create the geometry of the source.
 
     Parameters
@@ -383,6 +383,7 @@ def create_source(
             "collimator_beam_height": source_dims.collimator.beam_height,
             "collimator_beam_width": source_dims.collimator.beam_width,
         }
+
     elif source_type == "am_HS6":
         replacements = {
             "source_height": source_dims.height,
@@ -391,6 +392,7 @@ def create_source(
             "source_capsule_width": source_dims.capsule.width,
             "source_capsule_depth": source_dims.capsule.depth,
         }
+
     elif source_type in ["ba_HS4", "co_HS5"]:
         replacements = {
             "source_height": source_dims.height,
@@ -400,6 +402,7 @@ def create_source(
             "source_Alring_width_min": source_dims.al_ring.width_min,
             "source_Alring_width_max": source_dims.al_ring.width_max,
         }
+        
     elif source_type == "th_HS2":
         replacements = {
             "source_height": source_dims.height,
@@ -415,9 +418,11 @@ def create_source(
             "CuSource_holder_bottom_width": holder_dims.copper.bottom_width,
             "source_offset_height": source_dims.offset_height,
         }
+
     else:
         msg = f"source type of {source_type} is not defined."
         raise RuntimeError(msg)
+    
     return read_gdml_with_replacements(dummy_gdml_path, replacements)
 
 
@@ -488,10 +493,9 @@ def create_source_holder(
     source_holder = holder_dims
     dummy_path = resources.files("pygeomhades") / "models" / "dummy"
 
-    if source_type == "th" and meas_type == "lat":
-        dummy_gdml_path = (
-            resources.files("pygeomhades") / "models" / "dummy" / "source_holder_th_HS2_lat_dummy.gdml"
-        )
+    if source_type == "th_HS2" and meas_type == "lat":
+        dummy_gdml_path = dummy_path / "source_holder_th_HS2_lat_dummy.gdml"
+
         replacements = {
             "cavity_source_holder_height": source_holder.source.cavity_height,
             "source_holder_height": source_holder.source.height,
@@ -500,7 +504,7 @@ def create_source_holder(
             "cavity_source_holder_width": source_holder.holder_width,
         }
 
-    elif source_type in ["am_collimated", "ba", "co", "th"]:
+    elif source_type in ["am_HS1", "ba_HS4", "co_HS5", "th_HS2"]:
         dummy_gdml_path = dummy_path / "source_holder_dummy.gdml"
 
         replacements = {
@@ -515,8 +519,8 @@ def create_source_holder(
             "position_source_fromcryostat_z": source_z,
         }
 
-    elif source_type == "am":
-        dummy_gdml_path = resources.files("pygeomhades") / "models" / "dummy" / "source_holder_am_HS6_dummy.gdml"
+    elif source_type == "am_HS6":
+        dummy_gdml_path = dummy_path / "source_holder_am_HS6_dummy.gdml"
 
         replacements = {
             "source_holder_top_height": source_holder.source.top_height,
