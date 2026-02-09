@@ -16,7 +16,7 @@ def dump_gdml_cli(argv: list[str] | None = None) -> None:
     args = _parse_cli_args(argv)
 
     source_info = args.run or args.source_position
-    
+
     logging.basicConfig()
     if args.verbose:
         logging.getLogger("pygeomhades").setLevel(logging.DEBUG)
@@ -172,7 +172,7 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
         metavar=("phi", "r", "z"),
         help="""Source position in phi, r, z  eg "0.0, 45.0, 3.0".""",
     )
-    
+
     parser.add_argument(
         "filename",
         default=None,
