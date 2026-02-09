@@ -39,7 +39,7 @@ def parse_measurement(measurement: str) -> AttrsDict:
         msg = f"Measurement string '{measurement}' is not in the expected format '{{source}}_{{position}}_{{ID}}'."
         raise ValueError(msg)
 
-    out = AttrsDict({"source": split[0]+"_"+split[1], "position": split[2], "id": split[3]})
+    out = AttrsDict({"source": split[0] + "_" + split[1], "position": split[2], "id": split[3]})
 
     return out
 

@@ -240,13 +240,13 @@ def get_source_holder_metadata(source_type: str, meas_type: str = "lat") -> Attr
 
     if source_type in ["co_HS5", "ba_HS4", "am_HS1", "th_HS2"]:
         if meas_type == "lat":
-             source_holder = {    
+            source_holder = {
                 "outer_width": 181.6,
                 "inner_width": 101.6,
-                "height": 65.0, 
-                "cavity_height": 60.0, 
+                "height": 65.0,
+                "cavity_height": 60.0,
                 "cavity_width": 50.0,
-             }
+            }
         else:
             source_holder = {
                 "source": {
@@ -276,7 +276,6 @@ def get_source_holder_metadata(source_type: str, meas_type: str = "lat") -> Attr
             "outer_width": 108.0,
             "inner_width": 87.0,
         }
-
 
     else:
         msg = f"Source must be co_HS5, ba_HS4, am_HS1, am_HS6 or th_HS2 not {source_type}"

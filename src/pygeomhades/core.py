@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import contextlib
 import logging
-from collections.abc import Mapping
 from importlib import resources
 from pathlib import Path
 
-import dbetto
 import numpy as np
 import pygeomtools
 from dbetto import TextDB
@@ -99,7 +97,6 @@ def construct(
     elif not isinstance(extra_meta, TextDB):
         extra_meta = TextDB(extra_meta)
 
-
     lmeta = None
     if not public_geometry:
         with contextlib.suppress(GitCommandError):
@@ -190,47 +187,53 @@ def construct(
         cryo_lv.pygeom_color_rgba = [0.0, 0.2, 0.8, 0.3]
 
         pv = _place_pv(cryo_lv, "cryo_pv", lab_lv, reg)
-        reg.addVolumeRecursive(pv)   
+        reg.addVolumeRecursive(pv)
 
     if "source" in assemblies:
         source_dims = dim.get_source_metadata(source_type, position)
         holder_dims = dim.get_source_holder_metadata(source_type, position)
 
         source_lv = create_source(source_type, source_dims, holder_dims, from_gdml=True)
-        run, source_position, _ = source_pos.set_source_position(hpge_name, measurement, campaign, source_info)
-        x_pos, y_pos, z_pos = source_position 
+        run, source_position, _ = source_pos.set_source_position(
+            hpge_name, measurement, campaign, source_info
+        )
+        x_pos, y_pos, z_pos = source_position
 
-        if source_type =="th_HS2":
+        if source_type == "th_HS2":
             if position == "top":
-                z_pos = -(z_pos + holder_dims.source.top_plate_height/2 + source_dims.copper.height+source_dims.copper.bottom_height)
-                z_pos_plates = -(z_pos + holder_dims.source.top_plate_height/2 -source_dims.plates.height/2)
-                z_pos_holder = -(z_pos + holder_dims.source.top_plate_height/2)
-            
-                #add plate
-                th_plate_lv = create_th_plate(source_dims, from_gdml=True)
-                pv = _place_pv(th_plate_lv, "th_plate_pv", lab_lv, reg, z_in_mm = z_pos_plates)
-                reg.addVolumeRecursive(pv)
-          
-            else: #lat
-                y_pos=holder_dims.outer_width/2+source_dims.copper.bottom_height
-                z_pos_holder = z_pos #?
-                #add rotation
-            
-        elif source_type == "am_HS1":
-            z_pos = -(z_pos + source_dims.collimator.height/2)
+                z_pos = -(
+                    z_pos
+                    + holder_dims.source.top_plate_height / 2
+                    + source_dims.copper.height
+                    + source_dims.copper.bottom_height
+                )
+                z_pos_plates = -(
+                    z_pos + holder_dims.source.top_plate_height / 2 - source_dims.plates.height / 2
+                )
+                z_pos_holder = -(z_pos + holder_dims.source.top_plate_height / 2)
 
-        else: #co_HS5, am_HS1, ba_HS4:
+                # add plate
+                th_plate_lv = create_th_plate(source_dims, from_gdml=True)
+                pv = _place_pv(th_plate_lv, "th_plate_pv", lab_lv, reg, z_in_mm=z_pos_plates)
+                reg.addVolumeRecursive(pv)
+
+            else:  # lat
+                y_pos = holder_dims.outer_width / 2 + source_dims.copper.bottom_height
+                z_pos_holder = z_pos  # ?
+                # add rotation
+
+        elif source_type == "am_HS1":
+            z_pos = -(z_pos + source_dims.collimator.height / 2)
+
+        else:  # co_HS5, am_HS1, ba_HS4:
             z_pos = -z_pos
-            z_pos_holder = -(z_pos + holder_dims.source.top_plate_height/2)
-	 
-   
+            z_pos_holder = -(z_pos + holder_dims.source.top_plate_height / 2)
+
         pv = _place_pv(source_lv, "source_pv", world_lv, reg, x_in_mm=x_pos, y_in_mm=y_pos, z_in_mm=z_pos)
         reg.addVolumeRecursive(pv)
-        reg.logicalVolumeDict[source_lv.name].pygeom_color_rgba = [0.8, 0.6, 0.4, 0.2]     
-
+        reg.logicalVolumeDict[source_lv.name].pygeom_color_rgba = [0.8, 0.6, 0.4, 0.2]
 
         if source_type != "am_HS1":
-
             s_holder_lv = create_source_holder(
                 source_type,
                 holder_dims,
@@ -238,33 +241,27 @@ def construct(
                 meas_type=position,
                 from_gdml=True,
             )
-            
+
             pv = _place_pv(s_holder_lv, "source_holder_pv", lab_lv, reg, z_in_mm=z_pos_holder)
             reg.addVolumeRecursive(pv)
-            
-            #construct lead castle and bottom plate
-            if "lead_castle" in assemblies:
 
+            # construct lead castle and bottom plate
+            if "lead_castle" in assemblies:
                 plate_meta = dim.get_bottom_plate_metadata()
                 plate_lv = create_bottom_plate(plate_meta, from_gdml=True)
                 plate_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
-                
+
                 z_pos = cryostat_meta.position_from_bottom + plate_meta.height / 2.0
                 pv = _place_pv(plate_lv, "plate_pv", world_lv, reg, z_in_mm=z_pos)
                 reg.addVolumeRecursive(pv)
 
-                if (
-                    hpge_name in {"V02160B", "V02166B"}
-                    or (
-                        hpge_name == "V02160A"
-                        and measurement == "th_HS2_lat_psa"
-                        and run in {2, 3, 4, 5}
-                    )
-                ): 
-                    table =2
+                if hpge_name in {"V02160B", "V02166B"} or (
+                    hpge_name == "V02160A" and measurement == "th_HS2_lat_psa" and run in {2, 3, 4, 5}
+                ):
+                    table = 2
                 else:
-                    table=1
-                
+                    table = 1
+
                 castle_dims = dim.get_castle_dimensions(table)
                 castle_lv = create_lead_castle(table, castle_dims, from_gdml=True)
                 castle_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
@@ -272,6 +269,5 @@ def construct(
                 z_pos = cryostat_meta.position_from_bottom - castle_dims.base.height / 2.0
                 pv = _place_pv(castle_lv, "castle_pv", world_lv, reg, z_in_mm=z_pos)
                 reg.addVolumeRecursive(pv)
-
 
     return reg
