@@ -19,6 +19,17 @@
 		<element Z="6" formula="C" name="Carbon" >
 			<atom value="12.01" />
 		</element>
+		<element name="Aluminum" formula="Al" Z="13">
+    		<atom value="26.98" />
+		</element>
+		<material name="Al_material">
+    		<D value="2.7" unit="g/cm3" />
+    		<fraction n="1.0" ref="Aluminum" />
+		</material>
+		<material name="Galactic">
+			<D value="1e-25" unit="g/cm3" />
+			<fraction n="1.0" ref="Hydrogen" />
+		</material>
 		<material name="HD1000" >
 			<D value="0.93" unit="g/cm3" />
 			<composite n="4" ref="Hydrogen" />
@@ -47,12 +58,12 @@
 				</physvol>
 			</volume>
 		<volume name="Source_Alring">
-			<materialref ref="G4_Al"/>
+			<materialref ref="Al_material"/>
 			<solidref ref="source_Alring"/>
 		</volume>
 
 		<volume name="Source_Encapsulated">
-			<materialref ref="G4_Galactic"/>
+			<materialref ref="Galactic"/>
 			<solidref ref="source_vacuum"/>
 			<physvol>
 				<volumeref ref="Source_foil"/>

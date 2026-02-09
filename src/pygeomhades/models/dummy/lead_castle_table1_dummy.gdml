@@ -59,7 +59,7 @@
 
 	<structure>
 		<volume name="Lead_castle">
-			<materialref ref="G4_Pb"/>
+			<materialref ref="Pb"/>
 			<solidref ref="final_lead_castle_1"/>
 		</volume>
 	</structure>
