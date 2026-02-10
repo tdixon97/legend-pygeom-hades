@@ -6,12 +6,27 @@ from typing import Any, Union
 
 from dbetto import TextDB
 
+from pygeomhades.utils import parse_measurement
 SourceInfo = Union[int, tuple[float, float, float]]
 
 
 def check_source_position(
     node: Any, user_positions: list[float], hpge_name: str, campaign: str, measurement: str
-) -> None:
+) -> Any:
+    """Check the source position set by the user to those available in the metadata .
+
+    Parameters
+    ----------
+    user_position
+        source position, e.g. "0.0, 45.0, 3.0".
+    hpge_name
+        Name of the detector, e.g., "V07302A".
+    measurement
+        Name of the measurement, e.g., "am_HS1_top_dlt".
+    campaign
+        Name of the campaign, e.g., "c1". 
+    """
+  
     phi_position, r_position, z_position = user_positions[0], user_positions[1], user_positions[2]
     phi_pos = list(node.group("source_position.phi_in_deg").keys())
     details = "\n".join(f"{run}: {list(getattr(node, run).source_position.values())}" for run in node.keys())
@@ -43,7 +58,7 @@ def check_source_position(
         matched_r.append(True)
         try:
             z_pos_ = data.get(i).get("source_position").get("z_in_mm")
-        except:
+        except AttributeError:
             z_pos_ = data.get("source_position").get("z_in_mm")
         if z_position != z_pos_:
             matched_z = False
@@ -86,30 +101,32 @@ def set_source_position(
 ) -> tuple[str, list, list]:
     MetaDataPath = "/global/cfs/cdirs/m2676/data/teststands/hades/prodenv/ref/v1.0.0/inputs/hardware/config"
     MeasurementPath = f"{MetaDataPath}/{hpge_name}/{campaign}/{measurement}.yaml"
-    if not os.path.isfile(MeasurementPath):
-        raise FileNotFoundError(
+
+    measurement_info = parse_measurement(measurement)
+
+    position = measurement_info.position
+    source_type = measurement_info.source
+    
+    db = TextDB(MetaDataPath)
+    
+    try:
+        node = db[hpge_name][campaign][measurement]
+    except FileNotFoundError:
+        raise ValueError(
             f"The measurement {MeasurementPath} does not exist.\n"
             "Please check the configuration file and metadata."
         )
-
-    source_type = measurement[:6]
-    position = measurement[7:10]
-
-    db = TextDB(MetaDataPath)
-    node = getattr(db, hpge_name)
-    node = getattr(node, campaign)
-    node = getattr(node, measurement)
 
     details = "\n".join(f"{run}: {list(getattr(node, run).source_position.values())}" for run in node.keys())
 
     if isinstance(source_info, int):  # the user knows the run number
         run = f"run{source_info:04d}"
         try:
-            node = getattr(node, run)
+            node = node[run]
         except AttributeError:
             raise ValueError(
-                f"RUN EROOR.\n"
-                "Run '{run}' not found in the metadata. \n"
+                f"RUN ERROR.\n"
+                f"Run '{run}' not found in the metadata. \n"
                 f"Full list of available runs, runXXXX: [phi, r, z]\n"
                 f"{details}"
             )
@@ -131,25 +148,25 @@ def set_source_position(
     y_position = round(-r_position * math.sin(phi), 2)
 
     # position in gdml file
-    DefinePositions = [x_position, y_position, z_position]
+    final_positions = [x_position, y_position, z_position]
 
     if position == "top":
         z_position = -z_position
     # position of radioactive source in .mac file
-    ListPosition = [x_position, y_position, z_position]
+    macro_position = [x_position, y_position, z_position]
     if source_type == "ba_HS4":
         pass
     # check numbers below
     elif source_type == "th_HS2":
         if position == "top":
-            ListPosition[2] += -5.0  # (3.+.5+1.5)mm
+            macro_position[2] += -5.0  # (3.+.5+1.5)mm
         elif position == "lat":
-            if ListPosition[1] == 0:
-                ListPosition[1] = 82.3  # (60.8.+18.+3.+.5)mm
+            if macro_position[1] == 0:
+                macro_position[1] = 82.3  # (60.8.+18.+3.+.5)mm
             else:
-                ListPosition[1] += 21.5  # (18.+3.+.5)mm
+                macro_position[1] += 21.5  # (18.+3.+.5)mm
     elif source_type == "am_HS1":
-        ListPosition[2] += -26.8  # (25.6+0.2+1.) mm
+        macro_position[2] += -26.8  # (25.6+0.2+1.) mm
     # else: #am_HS6
     # ListPosition[2]+= 1   #(25.6+0.2+1.) mm
-    return run, DefinePositions, ListPosition
+    return run, final_positions, macro_position

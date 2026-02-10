@@ -63,8 +63,8 @@ def _place_pv(
 def construct(
     hpge_name: str,
     measurement: str,
-    campaign,
-    source_info,
+    campaign: str,
+    source_info: int |  tuple[float, float, float],
     assemblies: list[str] | set[str] = DEFAULT_ASSEMBLIES,
     extra_meta: TextDB | Path | str | None = None,
     public_geometry: bool = False,
@@ -77,6 +77,10 @@ def construct(
         Name of the detector, e.g., "V07302A".
     measurement
         Name of the measurement, e.g., "am_HS1_top_dlt".
+    campaign
+        Name of the campaign, e.g., "c1".
+    source_info
+        Run number or source position, e.g. "1", or "0.0, 45.0, 3.0".
 
     assemblies
         A list of assemblies to construct, should be a subset of:
@@ -112,13 +116,14 @@ def construct(
         log.warning("CONSTRUCTING GEOMETRY FROM PUBLIC DATA ONLY")
         lmeta = PublicMetadataProxy()
 
-    position = measurement[7:10]
-    source_type = measurement[:6]
+    # extract the measurement info
+    measurement_info = parse_measurement(measurement)
+
+    position = measurement_info.position
+    source_type = measurement_info.source
     diode_meta = lmeta.hardware.detectors.germanium.diodes[hpge_name]
     hpge_meta = merge_configs(diode_meta, extra_meta[hpge_name])
 
-    # extract the measurement info
-    measurement_info = parse_measurement(measurement)
 
     reg = geant4.Registry()
 
@@ -129,7 +134,7 @@ def construct(
 
     # place a box rotated 180 deg so the geometry is not upside down
     lab = geant4.solid.Box("lab", 18, 18, 18, reg, "m")
-    lab_lv = geant4.LogicalVolume(lab, "G4_Galactic", "lab_lv", reg)
+    lab_lv = geant4.LogicalVolume(lab, "G4_AIR", "lab_lv", reg)
     lab_lv.pygeom_color_rgba = False
 
     _place_pv(lab_lv, "lab_lv", world_lv, reg, invert_z_axes=True)
@@ -217,19 +222,25 @@ def construct(
                 pv = _place_pv(th_plate_lv, "th_plate_pv", lab_lv, reg, z_in_mm=z_pos_plates)
                 reg.addVolumeRecursive(pv)
 
-            else:  # lat
+            elif position == "lat":  # lat
                 y_pos = holder_dims.outer_width / 2 + source_dims.copper.bottom_height
                 z_pos_holder = z_pos  # ?
                 # add rotation
-
+            
+            else:
+                msg = f" position {position} not implemented." 
+                raise NotImplementedError(msg)
         elif source_type == "am_HS1":
             z_pos = -(z_pos + source_dims.collimator.height / 2)
 
-        else:  # co_HS5, am_HS1, ba_HS4:
+        elif source_type in {"co_HS5", "ba_HS4", "am_HS6"}: 
             z_pos = -z_pos
             z_pos_holder = -(z_pos + holder_dims.source.top_plate_height / 2)
-
-        pv = _place_pv(source_lv, "source_pv", world_lv, reg, x_in_mm=x_pos, y_in_mm=y_pos, z_in_mm=z_pos)
+        else:
+            msg = f" Source type {source_type} not implemented." 
+            raise NotImplementedError(msg)
+    
+        pv = _place_pv(source_lv, "source_pv", lab_lv, reg, x_in_mm=x_pos, y_in_mm=y_pos, z_in_mm=z_pos)
         reg.addVolumeRecursive(pv)
         reg.logicalVolumeDict[source_lv.name].pygeom_color_rgba = [0.8, 0.6, 0.4, 0.2]
 
@@ -256,7 +267,7 @@ def construct(
                 reg.addVolumeRecursive(pv)
 
                 if hpge_name in {"V02160B", "V02166B"} or (
-                    hpge_name == "V02160A" and measurement == "th_HS2_lat_psa" and run in {2, 3, 4, 5}
+                    hpge_name == "V02160A" and measurement == "th_HS2_lat_psa" and run in {"r002", "r003", "r004", "r005"}
                 ):
                     table = 2
                 else:

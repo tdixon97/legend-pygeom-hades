@@ -124,14 +124,8 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
         help="""Create a geometry from public testdata only.""",
     )
     geom_opts.add_argument(
-        "-c",
-        "--config",
-        action="store",
-        help="""Select a config file to read geometry information from. """,
-    )
-    geom_opts.add_argument(
         "--assemblies",
-        action="store",
+        nargs="+",
         default=["hpge", "source", "lead_castle"],
         help=(
             """Select the assemblies to generate in the output.
