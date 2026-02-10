@@ -53,16 +53,14 @@ def check_source_position(
             if r_pos_ not in r_available:
                 r_available.append(r_pos_)
             continue
-        else:
-            matched_r.append(True)
+        matched_r.append(True)
         z_pos_ = source_pos.get("z_in_mm")
         if z_position != z_pos_:
             matched_z = False
             if z_pos_ not in z_available:
                 z_available.append(z_pos_)
             continue
-        else:
-            matched_z = True
+        matched_z = True
         run = data.get(i).get("run") or data.get("run")
     if not any(matched_r):
         msg = (
@@ -123,7 +121,7 @@ def set_source_position(
 
     try:
         node = db[hpge_name][campaign][measurement]
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         msg = (
             f"The measurement {measurement_path} does not exist.\n"
             "Please check the configuration file and metadata."
@@ -136,7 +134,7 @@ def set_source_position(
         run = f"run{run:04d}"
         try:
             node = node[run]
-        except AttributeError as e:
+        except AttributeError:
             msg(
                 f"RUN ERROR.\n"
                 f"Run '{run}' not found in the metadata. \n"
