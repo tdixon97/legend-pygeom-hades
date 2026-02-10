@@ -221,7 +221,7 @@ def get_source_metadata(source_type: str, meas_type: str = "") -> AttrsDict:
             msg = "can only have top or lat measurements"
             raise RuntimeError(msg)
     else:
-        msg = f"source type can only be am_HS1,  am_HS6, ba_HS4, co_HS5, am_HS6 or th_HS2 not {source_type}"
+        msg = f"source type can only be am_HS1,  am_HS6, ba_HS4, co_HS5, or th_HS2 not {source_type}"
         raise RuntimeError(msg)
 
     return AttrsDict(source)
