@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import math
-from typing import Any
 from pathlib import Path
+from typing import Any
+
 from dbetto import TextDB
 
 from pygeomhades.utils import parse_measurement
@@ -122,7 +123,7 @@ def set_source_position(
 
     try:
         node = db[hpge_name][campaign][measurement]
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         msg = (
             f"The measurement {measurement_path} does not exist.\n"
             "Please check the configuration file and metadata."
