@@ -81,7 +81,7 @@ def construct(
     campaign
         Name of the campaign, e.g., "c1".
     run
-        Number of run, eg. "1" . 
+        Number of run, eg. "1" .
     source_pos
         Source position, e.g. "0.0, 45.0, 3.0".
 

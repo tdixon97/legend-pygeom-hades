@@ -141,7 +141,6 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
         "--campaign",
         action="store",
         required=True,
-        
         help="""Name of the campaign eg "c1".""",
     )
     geom_opts.add_argument(

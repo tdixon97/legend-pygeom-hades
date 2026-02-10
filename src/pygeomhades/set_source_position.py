@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Union
+from typing import Any
 from pathlib import Path
 from dbetto import TextDB
 
 from pygeomhades.utils import parse_measurement
+
 
 def check_source_position(
     node: Any, user_positions: list[float], hpge_name: str, campaign: str, measurement: str
@@ -28,7 +29,7 @@ def check_source_position(
     phi_pos = list(node.group("source_position.phi_in_deg").keys())
     details = "\n".join(f"{run}: {list(getattr(node, run).source_position.values())}" for run in node)
     if phi_position not in phi_pos:
-        msg = ( 
+        msg = (
             "Position ERROR. \n"
             f"Provided phi position [{phi_position}] not found in the database "
             f"for the given measurement {hpge_name}/{campaign}/{measurement}.\n"
@@ -52,7 +53,7 @@ def check_source_position(
                 r_available.append(r_pos_)
             continue
         else:
-            matched_r.append(True)   
+            matched_r.append(True)
         z_pos_ = source_pos.get("z_in_mm")
         if z_position != z_pos_:
             matched_z = False
@@ -92,7 +93,7 @@ def set_source_position(
     measurement: str,
     campaign: str,
     run: int | None = None,
-    source_pos: tuple[float, float, float] | None = None
+    source_pos: tuple[float, float, float] | None = None,
 ) -> tuple[str, list, list]:
     """Return the run number and the source position in the lab_lv frame.
 
@@ -103,19 +104,20 @@ def set_source_position(
     measurement
         Name of the measurement, e.g., "am_HS1_top_dlt".
     campaign
-        Name of the campaign, e.g., "c1". 
+        Name of the campaign, e.g., "c1".
     run
-        Number of run, eg. "1" . 
+        Number of run, eg. "1" .
     source_pos
         Source position, e.g. "0.0, 45.0, 3.0".
     """
-    
     measurement_info = parse_measurement(measurement)
     position = measurement_info.position
     source_type = measurement_info.source
 
+    # Path to the submodule
     metadata_path = Path(__file__).parents[2] / "hades-metadata" / "hardware" / "config"
     measurement_path = f"{metadata_path}/{hpge_name}/{campaign}/{measurement}"
+
     db = TextDB(metadata_path)
 
     try:
@@ -148,7 +150,7 @@ def set_source_position(
     elif source_pos is not None:  # the user knows the source position
         run = check_source_position(node, source_pos, hpge_name, campaign, measurement)
         run = run[:1] + run[4:]
-        phi_position, r_position, z_position = source_pos 
+        phi_position, r_position, z_position = source_pos
     else:
         msg = "Insert either run number or source position"
         raise ValueError(msg)
