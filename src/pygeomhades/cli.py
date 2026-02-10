@@ -15,8 +15,6 @@ log = logging.getLogger(__name__)
 def dump_gdml_cli(argv: list[str] | None = None) -> None:
     args = _parse_cli_args(argv)
 
-    source_info = args.run or args.source_position
-
     logging.basicConfig()
     if args.verbose:
         logging.getLogger("pygeomhades").setLevel(logging.DEBUG)
@@ -37,7 +35,8 @@ def dump_gdml_cli(argv: list[str] | None = None) -> None:
         args.hpge_name,
         args.measurement,
         args.campaign,
-        source_info,
+        args.run,
+        args.source_position,
         assemblies=args.assemblies,
         public_geometry=args.public_geom,
     )
@@ -125,7 +124,7 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
     )
     geom_opts.add_argument(
         "--assemblies",
-        nargs="+",
+        action="store",
         default=["hpge", "source", "lead_castle"],
         help=(
             """Select the assemblies to generate in the output.
@@ -142,6 +141,7 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
         "--campaign",
         action="store",
         required=True,
+        
         help="""Name of the campaign eg "c1".""",
     )
     geom_opts.add_argument(
