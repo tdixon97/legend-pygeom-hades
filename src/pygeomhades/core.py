@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import math
 from importlib import resources
 from pathlib import Path
 
@@ -14,7 +15,6 @@ from pyg4ometry import geant4
 from pygeomhpges import make_hpge
 
 from pygeomhades import dimensions as dim
-from pygeomhades import set_source_position as src_pos
 from pygeomhades.create_volumes import (
     create_bottom_plate,
     create_cryostat,
@@ -66,17 +66,30 @@ def construct(
     extra_meta: TextDB | Path | str | None = None,
     public_geometry: bool = False,
 ) -> geant4.Registry:
-    """Construct the HADES geometry and return the registry containing the world volume.
+    """Construct the HADES geometry.
+
+    Returns the registry containing the world volume.
 
     Parameters
     ----------
     config
-        An AttrsDict containing:
-        - hpge_name: Name of the detector, e.g., "V07302A".
-        - measurement: Name of the measurement, e.g., "am_HS1_top_dlt".
-        - campaign: Name of the campaign, e.g., "c1".
-        - run: Number of run, eg. "1".
-        - source_pos: Source position, e.g. "0.0, 45.0, 3.0".
+
+    config
+      configuration dictionary defining the geometry, e.g.,
+
+      .. code-block:: yaml
+
+          detector: V13049A
+          collimator: false
+          daq_settings:
+            flashcam:
+              card_interface: efb2
+          run: run0001
+          measurement: th_HS2_top_psa
+          source_position:
+            phi_in_deg: 0.0
+            r_in_mm: 0.0
+            z_in_mm: 38.0
 
     assemblies
         A list of assemblies to construct, should be a subset of:
@@ -92,11 +105,11 @@ def construct(
       legend-metadata.
     """
 
-    hpge_name = config.hpge_name
-    campaign = config.campaign
+    hpge_name = config.detector
     measurement = config.measurement
-    run = getattr(config, "run", None)
     source_pos = getattr(config, "source_pos", None)
+    run = getattr(config, "run", None)
+    table = int(config.daq_settings.flashcam.card_interface[-1])
 
     if extra_meta is None:
         extra_meta = TextDB(resources.files("pygeomhades") / "configs" / "holder_wrap")
@@ -196,11 +209,19 @@ def construct(
         reg.addVolumeRecursive(pv)
 
     if "source" in assemblies:
+        if source_pos is None:
+            msg = "requested a geometry with source but no source position information was provided"
+            raise RuntimeError(msg)
+
         source_dims = dim.get_source_metadata(source_type, position)
         holder_dims = dim.get_source_holder_metadata(source_type, position)
 
         source_lv = create_source(source_type, source_dims, holder_dims, from_gdml=True)
-        run, source_position = src_pos.set_source_position(hpge_name, measurement, campaign, run, source_pos)
+
+        source_position = translate_to_detector_frame(
+            source_pos.phi_in_deg, source_pos.r_in_mm, source_pos.z_in_mm, source_type
+        )
+
         x_pos, y_pos, z_pos = source_position
 
         if source_type == "th_HS2":
@@ -268,6 +289,12 @@ def construct(
         pv = _place_pv(plate_lv, "plate_pv", lab_lv, reg, z_in_mm=z_pos)
         reg.addVolumeRecursive(pv)
 
+        # FIXME:
+        # it seems that at the beginning, when tables 1 and 2 were still
+        # different, the card interference didn't match the table yet because
+        # during the buildup of the stations and lead castle it might have been
+        # possible that Yoann replugged the stations. So it isn't so
+        # straightforward to get the initial table info by looking at the cards
         if hpge_name in {"V02160B", "V02166B"} or (
             hpge_name == "V02160A"
             and measurement == "th_HS2_lat_psa"
@@ -286,3 +313,20 @@ def construct(
         reg.addVolumeRecursive(pv)
 
     return reg
+
+
+def translate_to_detector_frame(
+    phi: float, r: float, z: float, source_type: str
+) -> tuple[float, float, float]:
+    """Translate the source position from metadata to detector frame"""
+
+    if source_type == "am_HS1" and r != 0:
+        r += -66  # update this condition
+        if r < 0:
+            phi += 180
+            r = abs(r)
+    phi = phi * math.pi / 180.0
+    x_position = round(r * math.cos(phi), 2)
+    y_position = round(-r * math.sin(phi), 2)
+
+    return [x_position, y_position, z]

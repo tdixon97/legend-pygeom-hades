@@ -31,16 +31,10 @@ def dump_gdml_cli(argv: list[str] | None = None) -> None:
     if vis_scene.get("fine_mesh", False) or args.check_overlaps:
         meshconfig.setGlobalMeshSliceAndStack(100)
 
+    config = AttrsDict(utils.load_dict(args.config))
+
     registry = core.construct(
-        AttrsDict(
-            {
-                "hpge_name": args.hpge_name,
-                "campaign": args.campaign,
-                "measurement": args.measurement,
-                "run": args.run,
-                "source_pos": args.source_position,
-            }
-        ),
+        config,
         assemblies=args.assemblies,
         public_geometry=args.public_geom,
     )
@@ -114,11 +108,6 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
         help="""Print a list of logical or physical volume names (from the pyg4ometry registry)""",
     )
 
-    # options for geometry generation.
-    #
-    # geometry options can also be specified in the config file, so the "default" argument of the argparse
-    # options cannot be used - we need to distinguish between an unspecified option and an explicitly set
-    # default option.
     geom_opts = parser.add_argument_group("geometry options")
     geom_opts.add_argument(
         "--public-geom",
@@ -128,7 +117,6 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
     )
     geom_opts.add_argument(
         "--assemblies",
-        action="store",
         default="hpge, source, lead_castle",
         help=(
             """Select the assemblies to generate in the output.
@@ -136,38 +124,9 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
         ),
     )
     geom_opts.add_argument(
-        "--hpge-name",
-        action="store",
+        "--config",
         required=True,
-        help="""Name of the detector eg "V07302A".""",
-    )
-    geom_opts.add_argument(
-        "--campaign",
-        action="store",
-        default="c1",
-        help="""Name of the campaign eg "c1".""",
-    )
-    geom_opts.add_argument(
-        "--measurement",
-        action="store",
-        required=True,
-        help="""Name of the measurement eg "am_HS1_top_dlt".""",
-    )
-
-    source_opts = geom_opts.add_mutually_exclusive_group(required=False)
-    source_opts.add_argument(
-        "--run",
-        action="store",
-        type=int,
-        help="""Number of the run eg 1.""",
-    )
-    source_opts.add_argument(
-        "--source_position",
-        nargs=3,
-        type=float,
-        action="store",
-        metavar=("phi", "r", "z"),
-        help="""Source position in phi, r, z  eg "0.0, 45.0, 3.0".""",
+        help="""Path to the configuration file.""",
     )
 
     parser.add_argument(
@@ -178,11 +137,6 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
     )
 
     args = parser.parse_args(argv)
-
-    if "source" in args.assemblies and args.run is None and args.source_position is None:
-        parser.error(
-            "When 'source' assembly is requested, you must specify either --run or --source_position."
-        )
 
     if not args.visualize and args.filename == "":
         parser.error("no output file and no visualization specified")
