@@ -140,7 +140,6 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
     geom_opts.add_argument(
         "--campaign",
         action="store",
-        required=True,
         default="c1",
         help="""Name of the campaign eg "c1".""",
     )
@@ -176,11 +175,10 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
 
     args = parser.parse_args(argv)
 
-    if "source" in args.assemblies:
-        if args.run is None and args.source_position is None:
-            parser.error(
-                "When 'source' assembly is requested, you must specify either --run or --source_position."
-            )
+    if "source" in args.assemblies and args.run is None and args.source_position is None:
+        parser.error(
+            "When 'source' assembly is requested, you must specify either --run or --source_position."
+        )
 
     if not args.visualize and args.filename == "":
         parser.error("no output file and no visualization specified")

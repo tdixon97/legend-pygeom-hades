@@ -87,6 +87,23 @@ def check_source_position(
         raise ValueError(msg)
 
 
+def translate_to_detector_frame(
+    phi: float, r: float, z: float, source_type: str
+) -> tuple[float, float, float]:
+    """Translate the source position from metadata to detector frame"""
+
+    if source_type == "am_HS1" and r != 0:
+        r += -66  # update this condition
+        if r < 0:
+            phi += 180
+            r = abs(r)
+    phi = phi * math.pi / 180.0
+    x_position = round(r * math.cos(phi), 2)
+    y_position = round(-r * math.sin(phi), 2)
+
+    return [x_position, y_position, z]
+
+
 def set_source_position(
     hpge_name: str,
     measurement: str,
@@ -120,12 +137,12 @@ def set_source_position(
 
     try:
         node = db[hpge_name][campaign][measurement]
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         msg = (
             f"The measurement {measurement_path} does not exist.\n"
             "Please check the configuration file and metadata."
         )
-        raise ValueError(msg)
+        raise ValueError(msg) from e
 
     details = "\n".join(f"{run}: {list(getattr(node, run).source_position.values())}" for run in node)
 
@@ -133,14 +150,14 @@ def set_source_position(
         run = f"run{run:04d}"
         try:
             node = node[run]
-        except AttributeError:
+        except AttributeError as e:
             msg = (
                 f"RUN ERROR.\n"
                 f"Run '{run}' not found in the metadata. \n"
                 f"Full list of available runs, runXXXX: [phi, r, z]\n"
                 f"{details}"
             )
-            raise ValueError(msg)
+            raise ValueError(msg) from e
         phi_position = node.source_position.phi_in_deg
         r_position = node.source_position.r_in_mm
         z_position = node.source_position.z_in_mm
@@ -152,15 +169,6 @@ def set_source_position(
     else:
         msg = "Insert either run number or source position"
         raise ValueError(msg)
-    if source_type == "am_HS1" and r_position != 0:  # update this condition
-        r_position += -66
-        if r_position < 0:
-            phi_position += 180
-            r_position = abs(r_position)
-    phi = phi_position * math.pi / 180.0
-    x_position = round(r_position * math.cos(phi), 2)
-    y_position = round(-r_position * math.sin(phi), 2)
-
-    final_positions = [x_position, y_position, z_position]
+    final_positions = translate_to_detector_frame(phi_position, r_position, z_position, source_type)
 
     return run, final_positions
