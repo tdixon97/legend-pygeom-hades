@@ -62,8 +62,8 @@ def _place_pv(
 
 def construct(
     hpge_name: str,
-    measurement: str,
     campaign: str,
+    measurement: str,
     run: int | None = None,
     source_pos: tuple[float, float, float] | None = None,
     assemblies: list[str] | set[str] = DEFAULT_ASSEMBLIES,
@@ -201,9 +201,7 @@ def construct(
         holder_dims = dim.get_source_holder_metadata(source_type, position)
 
         source_lv = create_source(source_type, source_dims, holder_dims, from_gdml=True)
-        run, source_position, _ = src_pos.set_source_position(
-            hpge_name, measurement, campaign, run, source_pos
-        )
+        run, source_position = src_pos.set_source_position(hpge_name, measurement, campaign, run, source_pos)
         x_pos, y_pos, z_pos = source_position
 
         if source_type == "th_HS2":
@@ -259,33 +257,33 @@ def construct(
             reg.addVolumeRecursive(pv)
 
             # construct lead castle and bottom plate
-        if "lead_castle" in assemblies:
-            if source_type == "am_HS1":
-                msg = f"No lead castle used in the measurement {measurement}"
-                raise ValueError(msg)
-            plate_meta = dim.get_bottom_plate_metadata()
-            plate_lv = create_bottom_plate(plate_meta, from_gdml=True)
-            plate_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
+    if "lead_castle" in assemblies:
+        if "source" in assemblies and source_type == "am_HS1":
+            msg = f"No lead castle used in the measurement {measurement}"
+            raise ValueError(msg)
+        plate_meta = dim.get_bottom_plate_metadata()
+        plate_lv = create_bottom_plate(plate_meta, from_gdml=True)
+        plate_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
 
-            z_pos = cryostat_meta.position_from_bottom + plate_meta.height / 2.0
-            pv = _place_pv(plate_lv, "plate_pv", world_lv, reg, z_in_mm=z_pos)
-            reg.addVolumeRecursive(pv)
+        z_pos = cryostat_meta.position_from_bottom + plate_meta.height / 2.0
+        pv = _place_pv(plate_lv, "plate_pv", lab_lv, reg, z_in_mm=z_pos)
+        reg.addVolumeRecursive(pv)
 
-            if hpge_name in {"V02160B", "V02166B"} or (
-                hpge_name == "V02160A"
-                and measurement == "th_HS2_lat_psa"
-                and run in {"r002", "r003", "r004", "r005"}
-            ):
-                table = 2
-            else:
-                table = 1
+        if hpge_name in {"V02160B", "V02166B"} or (
+            hpge_name == "V02160A"
+            and measurement == "th_HS2_lat_psa"
+            and run in {"r002", "r003", "r004", "r005"}
+        ):
+            table = 2
+        else:
+            table = 1
 
-            castle_dims = dim.get_castle_dimensions(table)
-            castle_lv = create_lead_castle(table, castle_dims, from_gdml=True)
-            castle_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
+        castle_dims = dim.get_castle_dimensions(table)
+        castle_lv = create_lead_castle(table, castle_dims, from_gdml=True)
+        castle_lv.pygeom_color_rgba = [0.2, 0.3, 0.5, 0.05]
 
-            z_pos = cryostat_meta.position_from_bottom - castle_dims.base.height / 2.0
-            pv = _place_pv(castle_lv, "castle_pv", world_lv, reg, z_in_mm=z_pos)
-            reg.addVolumeRecursive(pv)
+        z_pos = cryostat_meta.position_from_bottom - castle_dims.base.height / 2.0
+        pv = _place_pv(castle_lv, "castle_pv", lab_lv, reg, z_in_mm=z_pos)
+        reg.addVolumeRecursive(pv)
 
     return reg

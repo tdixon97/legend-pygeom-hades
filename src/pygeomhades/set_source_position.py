@@ -62,6 +62,7 @@ def check_source_position(
             continue
         matched_z = True
         run = data.get(i).get("run") or data.get("run")
+        return run
     if not any(matched_r):
         msg = (
             "Position ERROR.\n"
@@ -84,7 +85,6 @@ def check_source_position(
             f"{details}"
         )
         raise ValueError(msg)
-    return run
 
 
 def set_source_position(
@@ -93,7 +93,7 @@ def set_source_position(
     campaign: str,
     run: int | None = None,
     source_pos: tuple[float, float, float] | None = None,
-) -> tuple[str, list, list]:
+) -> tuple[str, list]:
     """Return the run number and the source position in the lab_lv frame.
 
     Parameters
@@ -110,7 +110,6 @@ def set_source_position(
         Source position, e.g. "0.0, 45.0, 3.0".
     """
     measurement_info = parse_measurement(measurement)
-    position = measurement_info.position
     source_type = measurement_info.source
 
     # Path to the submodule
@@ -135,7 +134,7 @@ def set_source_position(
         try:
             node = node[run]
         except AttributeError:
-            msg(
+            msg = (
                 f"RUN ERROR.\n"
                 f"Run '{run}' not found in the metadata. \n"
                 f"Full list of available runs, runXXXX: [phi, r, z]\n"
@@ -162,26 +161,6 @@ def set_source_position(
     x_position = round(r_position * math.cos(phi), 2)
     y_position = round(-r_position * math.sin(phi), 2)
 
-    # position in gdml file
     final_positions = [x_position, y_position, z_position]
 
-    if position == "top":
-        z_position = -z_position
-    # position of radioactive source in .mac file
-    macro_position = [x_position, y_position, z_position]
-    if source_type == "ba_HS4":
-        pass
-    # check numbers below
-    elif source_type == "th_HS2":
-        if position == "top":
-            macro_position[2] += -5.0  # (3.+.5+1.5)mm
-        elif position == "lat":
-            if macro_position[1] == 0:
-                macro_position[1] = 82.3  # (60.8.+18.+3.+.5)mm
-            else:
-                macro_position[1] += 21.5  # (18.+3.+.5)mm
-    elif source_type == "am_HS1":
-        macro_position[2] += -26.8  # (25.6+0.2+1.) mm
-    # else: #am_HS6
-    # ListPosition[2]+= 1   #(25.6+0.2+1.) mm
-    return run, final_positions, macro_position
+    return run, final_positions

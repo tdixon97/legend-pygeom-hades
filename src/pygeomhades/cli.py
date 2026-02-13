@@ -33,8 +33,8 @@ def dump_gdml_cli(argv: list[str] | None = None) -> None:
 
     registry = core.construct(
         args.hpge_name,
-        args.measurement,
         args.campaign,
+        args.measurement,
         args.run,
         args.source_position,
         assemblies=args.assemblies,
@@ -125,7 +125,7 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
     geom_opts.add_argument(
         "--assemblies",
         action="store",
-        default=["hpge", "source", "lead_castle"],
+        default="hpge, source, lead_castle",
         help=(
             """Select the assemblies to generate in the output.
             (default: hpge, source, and lead_castle)"""
@@ -141,6 +141,7 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
         "--campaign",
         action="store",
         required=True,
+        default="c1",
         help="""Name of the campaign eg "c1".""",
     )
     geom_opts.add_argument(
@@ -150,7 +151,7 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
         help="""Name of the measurement eg "am_HS1_top_dlt".""",
     )
 
-    source_opts = geom_opts.add_mutually_exclusive_group(required=True)
+    source_opts = geom_opts.add_mutually_exclusive_group(required=False)
     source_opts.add_argument(
         "--run",
         action="store",
@@ -174,6 +175,12 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
     )
 
     args = parser.parse_args(argv)
+
+    if "source" in args.assemblies:
+        if args.run is None and args.source_position is None:
+            parser.error(
+                "When 'source' assembly is requested, you must specify either --run or --source_position."
+            )
 
     if not args.visualize and args.filename == "":
         parser.error("no output file and no visualization specified")
