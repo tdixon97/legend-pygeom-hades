@@ -20,7 +20,7 @@ def test_construct():
     reg = construct(
         "B00000B",
         "am_HS1_top_dlt",
-        config={"lead_castle_idx": 1},
+        campaign = "c1",
         public_geometry=True,
     )
     assert isinstance(reg, geant4.Registry)
@@ -28,9 +28,9 @@ def test_construct():
 
     # test for table 2
     reg = construct(
-        "B00000B",
+        "V02160B",
         "am_HS1_top_dlt",
-        config={"lead_castle_idx": 2},
+        campaign = "c1",
         public_geometry=True,
     )
     assert isinstance(reg, geant4.Registry)
@@ -41,8 +41,9 @@ def test_construct():
         _ = construct(
             "B00000B",
             "am_HS1_top_dlt",
-            config={"lead_castle_idx": 1},
-            assemblies=["hpge", "lead_castle", "source"],
+            campaign = "c1",
+            assemblies="hpge,lead_castle,source",
+            run=1
             public_geometry=True,
             construct_unverified=False,
         )

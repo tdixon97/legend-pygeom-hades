@@ -39,9 +39,7 @@ def parse_measurement(measurement: str) -> AttrsDict:
         msg = f"Measurement string '{measurement}' is not in the expected format '{{source_HSX}}_{{position}}_{{ID}}'."
         raise ValueError(msg)
 
-    out = AttrsDict({"source": split[0] + "_" + split[1], "position": split[2], "id": split[3]})
-
-    return out
+    return AttrsDict({"source": split[0] + "_" + split[1], "position": split[2], "id": split[3]})
 
 
 def merge_configs(diode_meta: AttrsDict, extra_meta: Mapping, *, extra_name: str = "hades") -> AttrsDict:
