@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 
-from dbetto import utils
+from dbetto import AttrsDict, utils
 from pyg4ometry import config as meshconfig
 from pygeomtools import geometry, write_pygeom
 
@@ -32,11 +32,15 @@ def dump_gdml_cli(argv: list[str] | None = None) -> None:
         meshconfig.setGlobalMeshSliceAndStack(100)
 
     registry = core.construct(
-        args.hpge_name,
-        args.campaign,
-        args.measurement,
-        args.run,
-        args.source_position,
+        AttrsDict(
+            {
+                "hpge_name": args.hpge_name,
+                "campaign": args.campaign,
+                "measurement": args.measurement,
+                "run": args.run,
+                "source_pos": args.source_position,
+            }
+        ),
         assemblies=args.assemblies,
         public_geometry=args.public_geom,
     )

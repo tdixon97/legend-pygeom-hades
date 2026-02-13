@@ -6,6 +6,8 @@ import pygeomtools
 import pytest
 from pyg4ometry import geant4
 
+from dbetto import AttrsDict
+
 from pygeomhades.core import construct
 
 public_geom = os.getenv("LEGEND_METADATA", "") == ""
@@ -18,9 +20,7 @@ def test_import():
 def test_construct():
     # test for a bege
     reg = construct(
-        "B00000B",
-        "am_HS1_top_dlt",
-        campaign="c1",
+        AttrsDict({"hpge_name": "B00000B", "campaign": "c1", "measurement": "am_HS1_top_dlt"}),
         public_geometry=True,
     )
     assert isinstance(reg, geant4.Registry)
@@ -28,9 +28,7 @@ def test_construct():
 
     # test for table 2
     reg = construct(
-        "V02160B",
-        "am_HS1_top_dlt",
-        campaign="c1",
+        AttrsDict({"hpge_name": "V02160B", "campaign": "c1", "measurement": "am_HS1_top_dlt"}),
         public_geometry=True,
     )
     assert isinstance(reg, geant4.Registry)
@@ -39,11 +37,15 @@ def test_construct():
     with pytest.raises(NotImplementedError):
         # test for source assembly (not yet verified)
         _ = construct(
-            "B00000B",
-            "am_HS1_top_dlt",
-            campaign="c1",
+            AttrsDict(
+                {
+                    "hpge_name": "B00000B",
+                    "campaign": "c1",
+                    "measurement": "am_HS1_top_dlt",
+                    "run": 1,
+                }
+            ),
             assemblies="hpge,lead_castle,source",
-            run=1,
             public_geometry=True,
             construct_unverified=False,
         )

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pygeomtools
-from dbetto import TextDB
+from dbetto import AttrsDict, TextDB
 from git import GitCommandError
 from legendmeta import LegendMetadata
 from pyg4ometry import geant4
@@ -61,11 +61,7 @@ def _place_pv(
 
 
 def construct(
-    hpge_name: str,
-    campaign: str,
-    measurement: str,
-    run: int | None = None,
-    source_pos: tuple[float, float, float] | None = None,
+    config: AttrsDict,
     assemblies: list[str] | set[str] = DEFAULT_ASSEMBLIES,
     extra_meta: TextDB | Path | str | None = None,
     public_geometry: bool = False,
@@ -74,16 +70,13 @@ def construct(
 
     Parameters
     ----------
-    hpge_name
-        Name of the detector, e.g., "V07302A".
-    measurement
-        Name of the measurement, e.g., "am_HS1_top_dlt".
-    campaign
-        Name of the campaign, e.g., "c1".
-    run
-        Number of run, eg. "1" .
-    source_pos
-        Source position, e.g. "0.0, 45.0, 3.0".
+    config
+        An AttrsDict containing:
+        - hpge_name: Name of the detector, e.g., "V07302A".
+        - measurement: Name of the measurement, e.g., "am_HS1_top_dlt".
+        - campaign: Name of the campaign, e.g., "c1".
+        - run: Number of run, eg. "1".
+        - source_pos: Source position, e.g. "0.0, 45.0, 3.0".
 
     assemblies
         A list of assemblies to construct, should be a subset of:
@@ -98,6 +91,12 @@ def construct(
       if true, uses the public geometry metadata instead of the LEGEND-internal
       legend-metadata.
     """
+
+    hpge_name = config.hpge_name
+    campaign = config.campaign
+    measurement = config.measurement
+    run = getattr(config, "run", None)
+    source_pos = getattr(config, "source_pos", None)
 
     if extra_meta is None:
         extra_meta = TextDB(resources.files("pygeomhades") / "configs" / "holder_wrap")

@@ -18,9 +18,13 @@ pytestmark = [
 @pytest.fixture
 def gdml_file(tmp_path):
     reg = core.construct(
-        "V07302A",  # this works since its larger than the test detector
-        "am_HS1_top_dlt",
-        config={"lead_castle_idx": 1},
+        pygeomtools.AttrsDict(
+            {
+                "hpge_name": "V07302A",  # this works since its larger than the test detector
+                "campaign": "c1",
+                "measurement": "am_HS1_top_dlt",
+            }
+        ),
         public_geometry=True,
     )
 
