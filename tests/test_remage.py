@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import dbetto
 import pygeomtools
 import pytest
-from pathlib import Path
+
 from pygeomhades import core
 
 public_geom = os.getenv("LEGEND_METADATA", "") == ""
@@ -30,6 +31,9 @@ def gdml_files(tmp_path):
         )
 
         gdml_file = tmp_path / f"hades-public-{meas}.gdml"
+
+        pygeomtools.geometry.check_registry_sanity(reg, reg)
+
         pygeomtools.write_pygeom(reg, gdml_file)
         out.append(gdml_file)
 

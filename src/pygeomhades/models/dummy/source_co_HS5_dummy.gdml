@@ -31,6 +31,10 @@
 			<composite n="4" ref="Hydrogen" />
 			<composite n="2" ref="Carbon" />
 		</material>
+		<material name="Galactic">
+			<D value="1e-25" unit="g/cm3" />
+			<fraction n="1.0" ref="Hydrogen" />
+		</material>
 	</materials>
 
 	<solids>

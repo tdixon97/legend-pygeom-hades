@@ -19,8 +19,17 @@
 	</define>
 
 	<materials>
+		<element Z="6" formula="C" name="Carbon" >
+			<atom value="12.01" />
+		</element>
+		<element Z="7" formula="N" name="Nitrogen" >
+			<atom value="14.01" />
+		</element>
 		<element Z="8" formula="O" name="Oxygen" >
 			<atom value="16" />
+		</element>
+		<element name="Argon" formula="Ar" Z="18">
+			<atom value="39.95" />
 		</element>
 		<element Z="14" formula="Si" name="Silicon" >
 			<atom value="28.09" />
@@ -50,6 +59,13 @@
 			<composite n="1" ref="Silicon" />
 			<composite n="2" ref="Oxygen" />
 		</material>
+		<material name="Air">
+			<D value="0.00120479" unit="g/cm3" />
+			<fraction n="0.000124" ref="Carbon" />
+			<fraction n="0.755268" ref="Nitrogen" />
+			<fraction n="0.231781" ref="Oxygen" />
+			<fraction n="0.012827" ref="Argon" />
+		</material>
 	</materials>
 
 	<solids>
@@ -73,7 +89,7 @@
 			</physvol>
 		</volume>
 		<volume name="Collimator_Beam">
-			<materialref ref="G4_Air"/>
+			<materialref ref="Air"/>
 			<solidref ref="collimator_beam"/>
 		</volume>
 		<volume name="Source_Collimated">
