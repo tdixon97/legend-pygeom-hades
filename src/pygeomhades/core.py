@@ -44,11 +44,12 @@ def _place_pv(
     x_in_mm: float = 0,
     y_in_mm: float = 0,
     z_in_mm: float = 0,
+    x_rot: float = 0,
     invert_z_axes: bool = False,
 ) -> geant4.PhysicalVolume:
     """Wrapper to place the physical volume more concisely."""
 
-    rot = [0, np.pi, 0, "rad"] if invert_z_axes else [0, 0, 0, "rad"]
+    rot = [0, np.pi, 0, "rad"] if invert_z_axes else [x_rot, 0, 0, "rad"]
 
     return geant4.PhysicalVolume(
         rot,
@@ -238,11 +239,7 @@ def construct(
 
             elif position == "lat":  # lat
                 source_y_pos = holder_dims.outer_width / 2 + source_dims.copper.bottom_height
-                z_pos_holder = z_pos  # ?
-
-                msg = "For th lateral source z position may not be correct and rotation is not present."
-                log.warning(msg)
-                # add rotation
+                z_pos_holder = z_pos
 
             else:
                 msg = f" position {position} not implemented."
@@ -260,7 +257,14 @@ def construct(
             raise NotImplementedError(msg)
 
         pv = _place_pv(
-            source_lv, "source_pv", lab_lv, reg, x_in_mm=x_pos, y_in_mm=source_y_pos, z_in_mm=source_z_pos
+            source_lv,
+            "source_pv",
+            lab_lv,
+            reg,
+            x_in_mm=x_pos,
+            y_in_mm=source_y_pos,
+            z_in_mm=source_z_pos,
+            x_rot=0 if (position != "lat" or source_type != "th_HS2") else -np.pi / 2,
         )
         reg.addVolumeRecursive(pv)
         reg.logicalVolumeDict[source_lv.name].pygeom_color_rgba = [0.5, 0.6, 0.4, 0.3]
