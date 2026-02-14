@@ -89,6 +89,25 @@ def test_construct():
             public_geometry=True,
         )
 
+
+def test_all_detectors():
+    dets = Path(resources.files("pygeomhades") / "configs" / "holder_wrap").glob("*.yaml")
+
+    for det in dets:
+        
+        print(det.stem)
+        daq_settings2 = AttrsDict({"flashcam": {"card_interface": "efb2"}})
+        pos = AttrsDict({"phi_in_deg": 0.0, "r_in_mm": 0.0, "z_in_mm": 38.0})
+        reg = construct(
+                AttrsDict({
+                    "detector": str(det.stem),
+                    "campaign": "c1",
+                    "measurement": "am_HS6_top_dlt",
+                    "daq_settings": daq_settings2,
+                    "source_position": pos,
+                }),
+            public_geometry=True,
+        )
         assert isinstance(reg, geant4.Registry)
         pygeomtools.geometry.check_registry_sanity(reg, reg)
 
