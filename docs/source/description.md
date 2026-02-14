@@ -21,5 +21,7 @@ A more detailed description can be found in
 In _remage_ the physical volume "Source" should usually be set as the volume for
 vertex confinement to simulate the calibration source.
 
-::: Other volume names can be found by inspecting the GDML file, but are not
+Other volume names can be found by inspecting the GDML file, but are not
 expected to be needed for simulations.
+
+:::
