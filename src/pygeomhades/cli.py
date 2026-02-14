@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-from collections.abc import Iterable
 
 from dbetto import AttrsDict, utils
 from pyg4ometry import config as meshconfig
@@ -36,7 +35,6 @@ def dump_gdml_cli(argv: list[str] | None = None) -> None:
 
     registry = core.construct(
         config,
-        assemblies=_parse_assemblies(args.assemblies),
         public_geometry=args.public_geom,
     )
 
@@ -116,14 +114,7 @@ def _parse_cli_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="""Create a geometry from public testdata only.""",
     )
-    geom_opts.add_argument(
-        "--assemblies",
-        default="hpge, source, lead_castle",
-        help=(
-            """Select the assemblies to generate in the output.
-            (default: hpge, source, and lead_castle)"""
-        ),
-    )
+
     geom_opts.add_argument(
         "--config",
         required=True,
@@ -143,36 +134,3 @@ def _parse_cli_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error("no output file and no visualization specified")
 
     return args
-
-
-def _parse_assemblies(arg: str | Iterable[str] | None) -> set[str]:
-    """Parse an argument string into a set of assemblies to build the geometry for.
-
-    Parameters
-    ----------
-    arg
-        if it is a string, it will be split on commas. Parts can be prefixed by "set operators" '+' or '-',
-        to add or remove items from the list of default assemblies. But either all parts have to be prefixed
-        with such an operator, or none.
-    """
-    if arg is None or len(arg) == 0:
-        return core.DEFAULT_ASSEMBLIES
-
-    parts = [a.strip() for a in arg.split(",") if a.strip() != ""] if isinstance(arg, str) else arg
-
-    with_no_op = [a[0] not in ("+", "-") for a in parts]
-    if any(with_no_op) and not all(with_no_op):
-        msg = "either all or no assemblies can be prefixed by the operators '+' or '-'"
-        raise ValueError(msg)
-
-    if not any(with_no_op):  # all have operators
-        assemblies = set(core.DEFAULT_ASSEMBLIES)  # make a copy
-        for p in parts:
-            if p[0] == "-":
-                assemblies -= {p[1:]}
-            elif p[0] == "+":
-                assemblies |= {p[1:]}
-    else:
-        assemblies = set(parts)
-
-    return assemblies

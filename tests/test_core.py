@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 
 import pygeomtools
-import pytest
 from dbetto import AttrsDict
 from pyg4ometry import geant4
 
@@ -28,7 +27,6 @@ def test_construct():
                 "daq_settings": daq_settings,
             }
         ),
-        assemblies=["hpge", "lead_castle"],
         public_geometry=True,
     )
     assert isinstance(reg, geant4.Registry)
@@ -46,7 +44,6 @@ def test_construct():
                 "daq_settings": daq_settings2,
             }
         ),
-        assemblies=["hpge", "lead_castle"],
         public_geometry=True,
     )
 
@@ -67,7 +64,6 @@ def test_construct():
                     "source_position": pos,
                 }
             ),
-            assemblies=["hpge", "source"],
             public_geometry=True,
         )
 
@@ -88,28 +84,11 @@ def test_construct():
                     "source_position": pos,
                 }
             ),
-            assemblies=["hpge", "source"],
             public_geometry=True,
         )
 
         assert isinstance(reg, geant4.Registry)
         pygeomtools.geometry.check_registry_sanity(reg, reg)
-
-    with pytest.raises(RuntimeError):
-        # test for source assembly without source position
-        _ = construct(
-            AttrsDict(
-                {
-                    "detector": "B00000B",
-                    "campaign": "c1",
-                    "measurement": "am_HS1_top_dlt",
-                    "run": 1,
-                    "daq_settings": daq_settings,
-                }
-            ),
-            assemblies="hpge,lead_castle,source",
-            public_geometry=True,
-        )
 
 
 def test_translate_to_detector_frame():
