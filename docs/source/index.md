@@ -40,22 +40,10 @@ $ legend-pygeom-hades -h
 In the simplest case, you can create a usable geometry file with:
 
 ```console
-$ legend-pygeom-hades hades.gdml --hpge-name <...> --measurement <...>
+$ legend-pygeom-hades hades.gdml --config <FILE>
 ```
 
-It is required to provide the name of the HPGe detector and the measurement to
-simulate:
-
-:::{note}
-
-The different measurements are described on
-[[confluence]](https://legend-exp.atlassian.net/wiki/spaces/LEGEND/pages/1826750480/Analysis+of+characterization+data+WIP)
-(note this is a private page).
-
-:::
-
-It is possible to provide a config file describing the geometry, see
-{doc}`configuration` for more info.
+More details on the configuration file are given in {doc}`configuration`.
 
 ## Extra metadata
 
@@ -70,6 +58,7 @@ geometry. This is described in {doc}`metadata`.
 
 Configuration <configuration>
 Extra metadata format <metadata>
+Geometry description <description>
 Visualisation <vis>
 Package API reference <api/modules>
 ```

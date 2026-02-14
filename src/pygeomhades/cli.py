@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 
-from dbetto import utils
+from dbetto import AttrsDict, utils
 from pyg4ometry import config as meshconfig
 from pygeomtools import geometry, write_pygeom
 
@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 
 def dump_gdml_cli(argv: list[str] | None = None) -> None:
-    args, config = _parse_cli_args(argv)
+    args = _parse_cli_args(argv)
 
     logging.basicConfig()
     if args.verbose:
@@ -31,11 +31,10 @@ def dump_gdml_cli(argv: list[str] | None = None) -> None:
     if vis_scene.get("fine_mesh", False) or args.check_overlaps:
         meshconfig.setGlobalMeshSliceAndStack(100)
 
+    config = AttrsDict(utils.load_dict(args.config))
+
     registry = core.construct(
-        args.hpge_name,
-        args.measurement,
-        assemblies=args.assemblies,
-        config=config,
+        config,
         public_geometry=args.public_geom,
     )
 
@@ -59,7 +58,7 @@ def dump_gdml_cli(argv: list[str] | None = None) -> None:
         viewer.visualize(registry, vis_scene)
 
 
-def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, dict]:
+def _parse_cli_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="legend-pygeom-hades",
         description="%(prog)s command line interface",
@@ -108,11 +107,6 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
         help="""Print a list of logical or physical volume names (from the pyg4ometry registry)""",
     )
 
-    # options for geometry generation.
-    #
-    # geometry options can also be specified in the config file, so the "default" argument of the argparse
-    # options cannot be used - we need to distinguish between an unspecified option and an explicitly set
-    # default option.
     geom_opts = parser.add_argument_group("geometry options")
     geom_opts.add_argument(
         "--public-geom",
@@ -120,33 +114,11 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
         default=None,
         help="""Create a geometry from public testdata only.""",
     )
-    geom_opts.add_argument(
-        "-c",
-        "--config",
-        action="store",
-        help="""Select a config file to read geometry information from. """,
-    )
-    geom_opts.add_argument(
-        "--hpge-name",
-        action="store",
-        required=True,
-        help="""Name of the detector eg "V07302A".""",
-    )
-    geom_opts.add_argument(
-        "--assemblies",
-        action="store",
-        default=["hpge", "lead_castle"],
-        help=(
-            """Select the assemblies to generate in the output.
-            (default: hpge and lead_castle)"""
-        ),
-    )
 
     geom_opts.add_argument(
-        "--measurement",
-        action="store",
+        "--config",
         required=True,
-        help="""Name of the measurement eg "am_HS1_top_dlt".""",
+        help="""Path to the configuration file.""",
     )
 
     parser.add_argument(
@@ -158,12 +130,7 @@ def _parse_cli_args(argv: list[str] | None = None) -> tuple[argparse.Namespace, 
 
     args = parser.parse_args(argv)
 
-    config = {}
-
-    if args.config is not None:
-        config = utils.load_dict(args.config)
-
     if not args.visualize and args.filename == "":
         parser.error("no output file and no visualization specified")
 
-    return args, config
+    return args

@@ -1,0 +1,13 @@
+run0001:
+  campaign: c1
+  collimator: false
+  daq_settings:
+    flashcam:
+      card_interface: efb2
+  detector: V07302A
+  measurement: th_HS2_lat_psa
+  run: run0001
+  source_position:
+    phi_in_deg: 0.0
+    r_in_mm: 0.0
+    z_in_mm: 40.0

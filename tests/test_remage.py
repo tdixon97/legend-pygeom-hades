@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
+import dbetto
 import pygeomtools
 import pytest
 
@@ -16,26 +18,34 @@ pytestmark = [
 
 
 @pytest.fixture
-def gdml_file(tmp_path):
-    reg = core.construct(
-        "V07302A",  # this works since its larger than the test detector
-        "am_HS1_top_dlt",
-        config={"lead_castle_idx": 1},
-        public_geometry=True,
-    )
+def gdml_files(tmp_path):
+    meta = dbetto.TextDB(f"{Path(__file__).parent}/dummy_prod/c1/")
+    out = []
 
-    gdml_file = tmp_path / "hades-public.gdml"
-    pygeomtools.write_pygeom(reg, gdml_file)
+    for meas, runinfo in meta.items():
+        info = next(iter(runinfo.values()))
 
-    return gdml_file
+        reg = core.construct(
+            info,
+            public_geometry=True,
+        )
+
+        gdml_file = tmp_path / f"hades-public-{meas}.gdml"
+
+        pygeomtools.geometry.check_registry_sanity(reg, reg)
+
+        pygeomtools.write_pygeom(reg, gdml_file)
+        out.append(gdml_file)
+
+    return out
 
 
-def test_overlaps(gdml_file):
+def test_overlaps(gdml_files):
     from remage import remage_run
 
     macro = [
         "/RMG/Geometry/RegisterDetectorsFromGDML Germanium",
         "/run/initialize",
     ]
-
-    remage_run(macro, gdml_files=str(gdml_file), raise_on_error=True, raise_on_warning=True)
+    for gdml_file in gdml_files:
+        remage_run(macro, gdml_files=str(gdml_file), raise_on_error=True, raise_on_warning=True)

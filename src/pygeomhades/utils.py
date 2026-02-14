@@ -20,31 +20,26 @@ def parse_measurement(measurement: str) -> AttrsDict:
     For more details see [link](https://legend-exp.atlassian.net/wiki/spaces/LEGEND/pages/1826750480/Analysis+of+characterization+data+WIP).
 
 
-    .. warning::
-
-        In the case of the "source" being "am", for compatibility
-        with the rest of the codebase if the source is colimated (HS1) the source name is
-        "am_collimated".
-
     Parameters
     ----------
     measurement
         The measurement string, e.g., "am_HS1_top_dlt".
 
+    Returns
+    -------
+    AttrsDict
+        A dictionary with keys "source", "position", and "id" containing the parsed components of the measurement string.
+        For example, for "am_HS1_top_dlt", the returned
+        dictionary would be {"source": "am_HS1", "position": "top", "id": "dlt"}.
     """
 
     split = measurement.split("_")
 
     if len(split) != 4:
-        msg = f"Measurement string '{measurement}' is not in the expected format '{{source}}_{{HSX}}_{{position}}_{{ID}}'."
+        msg = f"Measurement string '{measurement}' is not in the expected format '{{source_HSX}}_{{position}}_{{ID}}'."
         raise ValueError(msg)
 
-    out = AttrsDict({"source": split[0], "holder": split[1], "position": split[2], "id": split[3]})
-
-    if out.source == "am" and out.holder == "HS1":
-        out.source = "am_collimated"
-
-    return out
+    return AttrsDict({"source": split[0] + "_" + split[1], "position": split[2], "id": split[3]})
 
 
 def merge_configs(diode_meta: AttrsDict, extra_meta: Mapping, *, extra_name: str = "hades") -> AttrsDict:

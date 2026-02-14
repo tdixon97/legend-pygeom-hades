@@ -50,6 +50,23 @@
 		<element Z="28" formula="Ni" name="Nickel" >
 			<atom value="58.9332" />
 		</element>
+		<element name="Argon" formula="Ar" Z="18">
+			<atom value="39.95" />
+		</element>
+		<element name="Copper" formula="Cu" Z="29">
+			<atom value="63.55" />
+		</element>
+		<material name="Air">
+		<D value="0.00120479" unit="g/cm3" />
+			<fraction n="0.000124" ref="Carbon" />
+			<fraction n="0.755268" ref="Nitrogen" />
+			<fraction n="0.231781" ref="Oxygen" />
+			<fraction n="0.012827" ref="Argon" />
+		</material>
+		<material name="metalCu" >
+        	<D value="8.960" unit="g/cm3" />
+        	<fraction n="1." ref="Copper" />
+    	</material>
 		<material name="epoxy_mod" >
 			<D value="1.129" unit="g/cm3"/>
 			<composite n="41" ref="Carbon" />
@@ -70,6 +87,7 @@
 			<composite n="1" ref="Silicon" />
 			<composite n="2" ref="Oxygen" />
 		</material>
+
 	</materials>
 
 	<solids>
@@ -110,7 +128,7 @@
 			</physvol>
 		</volume>
 		<volume name="CuSource_Holder_Cavity">
-			<materialref ref="G4_AIR"/>
+			<materialref ref="Air"/>
 			<solidref ref="CuSource_holder_cavity"/>
 			<physvol>
 				<volumeref ref="Source_Encapsulated"/>
@@ -118,7 +136,7 @@
 			</physvol>
 		</volume>
 		<volume name="CuSource_Holder">
-			<materialref ref="G4_Cu"/>
+			<materialref ref="metalCu"/>
 			<solidref ref="CuSource_holder"/>
 			<physvol>
 				<volumeref ref="CuSource_Holder_Cavity"/>
