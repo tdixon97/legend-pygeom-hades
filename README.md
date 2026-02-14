@@ -16,6 +16,7 @@ Geometry of the LEGEND HPGe detector test-stand at HADES for detector
 characterization.
 
 ## Warning!
+
 > This is a work in progress and currently under heavy development.
 
 ## Getting started
