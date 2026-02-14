@@ -274,6 +274,7 @@ def construct(
                 meas_type=position,
                 from_gdml=True,
             )
+            s_holder_lv.pygeom_color_rgba = [0, 1, 1, 0.2]
 
             pv = _place_pv(s_holder_lv, "source_holder_pv", lab_lv, reg, z_in_mm=z_pos_holder)
             reg.addVolumeRecursive(pv)
