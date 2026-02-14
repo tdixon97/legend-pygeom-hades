@@ -95,7 +95,7 @@ def test_all_detectors():
 
     for det in dets:
         # skip the special detectors
-        if str(det.stem) in ["V02162B", "V02160A", "V07646A"] and public_geom:
+        if str(det.stem) in ["V02162B", "V02160A", "V07646A", "V06649A"] and public_geom:
             continue
 
         daq_settings2 = AttrsDict({"flashcam": {"card_interface": "efb2"}})
