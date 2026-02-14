@@ -23,7 +23,7 @@ def gdml_file(tmp_path):
     reg = core.construct(
         dbetto.AttrsDict(
             {
-                "hpge_name": "V07302A",  # this works since its larger than the test detector
+                "detector": "V07302A",  # this works since its larger than the test detector
                 "campaign": "c1",
                 "measurement": "am_HS6_top_dlt",
                 "daq_settings": daq_settings,
