@@ -5,7 +5,7 @@ holder:
   geometry:
     bottom_cyl:
       inner:
-        height_in_mm: -84.1
+        height_in_mm: 25.4
         radius_in_mm: 8.0
       outer:
         height_in_mm: 25.4

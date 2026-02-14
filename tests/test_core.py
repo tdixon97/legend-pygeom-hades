@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+from importlib import resources
+from pathlib import Path
 
 import pygeomtools
 from dbetto import AttrsDict
@@ -27,7 +29,7 @@ def test_construct():
                 "daq_settings": daq_settings,
             }
         ),
-        public_geometry=True,
+        public_geometry=public_geom,
     )
     assert isinstance(reg, geant4.Registry)
     pygeomtools.geometry.check_registry_sanity(reg, reg)
@@ -44,7 +46,7 @@ def test_construct():
                 "daq_settings": daq_settings2,
             }
         ),
-        public_geometry=True,
+        public_geometry=public_geom,
     )
 
     # Copper plate should be present
@@ -64,7 +66,7 @@ def test_construct():
                     "source_position": pos,
                 }
             ),
-            public_geometry=True,
+            public_geometry=public_geom,
         )
 
         assert isinstance(reg, geant4.Registry)
@@ -84,9 +86,32 @@ def test_construct():
                     "source_position": pos,
                 }
             ),
-            public_geometry=True,
+            public_geometry=public_geom,
         )
 
+
+def test_all_detectors():
+    dets = Path(resources.files("pygeomhades") / "configs" / "holder_wrap").glob("*.yaml")
+
+    for det in dets:
+        # skip the special detectors
+        if str(det.stem) in ["V02162B", "V02160A", "V07646A", "V06649A"] and public_geom:
+            continue
+
+        daq_settings2 = AttrsDict({"flashcam": {"card_interface": "efb2"}})
+        pos = AttrsDict({"phi_in_deg": 0.0, "r_in_mm": 0.0, "z_in_mm": 38.0})
+        reg = construct(
+            AttrsDict(
+                {
+                    "detector": str(det.stem),
+                    "campaign": "c1",
+                    "measurement": "am_HS6_top_dlt",
+                    "daq_settings": daq_settings2,
+                    "source_position": pos,
+                }
+            ),
+            public_geometry=public_geom,
+        )
         assert isinstance(reg, geant4.Registry)
         pygeomtools.geometry.check_registry_sanity(reg, reg)
 

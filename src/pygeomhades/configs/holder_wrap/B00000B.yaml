@@ -13,10 +13,10 @@ holder:
     cylinder:
       inner:
         height_in_mm: 62.5
-        radius_in_mm: 41.0
+        radius_in_mm: 39.5
       outer:
         height_in_mm: 65.5
-        radius_in_mm: 39.5
+        radius_in_mm: 41.0
     edge:
       height_in_mm: 0
       radius_in_mm: 0

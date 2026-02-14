@@ -23,6 +23,6 @@ class _DiodeProxy:
         det = self.dummy_detectors[det_name[0] + "99000A"]
         m = copy.copy(det)
         m.name = det_name
-        m.production.order = int(det_name[1:2])
+        m.production.order = int(det_name[1:3])
         m.production.slice = "A"
         return m
