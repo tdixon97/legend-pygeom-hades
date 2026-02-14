@@ -29,7 +29,6 @@ def gdml_file(tmp_path):
                 "daq_settings": daq_settings,
             }
         ),
-        assemblies=["hpge", "lead_castle"],
         public_geometry=True,
     )
 
