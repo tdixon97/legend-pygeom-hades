@@ -6,7 +6,7 @@ measurements).
 
 During detector characterisation a very large number of measurements are
 performed. This package allows to easily generate the geometry for any
-measurement and run (see {docs}`configuration`).
+measurement and run (see {doc}`configuration`).
 
 A more detailed description can be found in
 [[link]](https://www.research.unipd.it/retrieve/aaa7ce91-013d-4975-8827-c0eff2fb37af/Thesis_Valentina_Biancacci.pdf).
