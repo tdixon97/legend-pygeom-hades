@@ -73,7 +73,7 @@
 			</physvol>
 		</volume>
 		<volume name="Collimator_Beam">
-			<materialref ref="G4_AIR"/>
+			<materialref ref="G4_Air"/>
 			<solidref ref="collimator_beam"/>
 		</volume>
 		<volume name="Source_Collimated">
