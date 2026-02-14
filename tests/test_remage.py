@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import os
+from importlib import resources
 from pathlib import Path
 
 import dbetto
 import pygeomtools
 import pytest
+from dbetto import AttrsDict
+from pyg4ometry import geant4
 
 from pygeomhades import core
+from pygeomhades.core import construct
 
 public_geom = os.getenv("LEGEND_METADATA", "") == ""
 
@@ -71,4 +75,9 @@ def test_overlaps(gdml_files):
         "/run/initialize",
     ]
     for gdml_file in gdml_files:
-        remage_run(macro, gdml_files=str(gdml_file), raise_on_error=True, raise_on_warning=True)
+        remage_run(
+            macro,
+            gdml_files=str(gdml_file),
+            raise_on_error=True,
+            raise_on_warning=True,
+        )
