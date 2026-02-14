@@ -17,33 +17,31 @@ pytestmark = [
 
 
 @pytest.fixture
-def gdml_file(tmp_path):
-    daq_settings = dbetto.AttrsDict({"flashcam": {"card_interface": "efb1"}})
+def gdml_files(tmp_path):
+    meta = dbetto.TextDB("dummy_prod/c1")
+    out = []
 
-    reg = core.construct(
-        dbetto.AttrsDict(
-            {
-                "detector": "V07302A",  # this works since its larger than the test detector
-                "campaign": "c1",
-                "measurement": "am_HS6_top_dlt",
-                "daq_settings": daq_settings,
-            }
-        ),
-        public_geometry=True,
-    )
+    for meas, runinfo in meta.items():
+        info = next(iter(runinfo.values()))
 
-    gdml_file = tmp_path / "hades-public.gdml"
-    pygeomtools.write_pygeom(reg, gdml_file)
+        reg = core.construct(
+            info,
+            public_geometry=True,
+        )
 
-    return gdml_file
+        gdml_file = tmp_path / f"hades-public-{meas}.gdml"
+        pygeomtools.write_pygeom(reg, gdml_file)
+        out.append(gdml_file)
+
+    return out
 
 
-def test_overlaps(gdml_file):
+def test_overlaps(gdml_files):
     from remage import remage_run
 
     macro = [
         "/RMG/Geometry/RegisterDetectorsFromGDML Germanium",
         "/run/initialize",
     ]
-
-    remage_run(macro, gdml_files=str(gdml_file), raise_on_error=True, raise_on_warning=True)
+    for gdml_file in gdml_files:
+        remage_run(macro, gdml_files=str(gdml_file), raise_on_error=True, raise_on_warning=True)

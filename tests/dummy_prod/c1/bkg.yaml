@@ -1,0 +1,8 @@
+run0001:
+  campaign: c1
+  daq_settings:
+    flashcam:
+      card_interface: efb2
+  detector: V07302A
+  measurement: bkg
+  run: run0001
