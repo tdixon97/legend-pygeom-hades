@@ -5,7 +5,7 @@ import os
 import dbetto
 import pygeomtools
 import pytest
-
+from pathlib import Path
 from pygeomhades import core
 
 public_geom = os.getenv("LEGEND_METADATA", "") == ""
@@ -18,7 +18,7 @@ pytestmark = [
 
 @pytest.fixture
 def gdml_files(tmp_path):
-    meta = dbetto.TextDB("dummy_prod/c1")
+    meta = dbetto.TextDB(f"{Path(__file__).parent}/dummy_prod/c1/")
     out = []
 
     for meas, runinfo in meta.items():

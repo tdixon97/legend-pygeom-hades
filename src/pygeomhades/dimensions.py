@@ -147,7 +147,7 @@ def get_source_metadata(source_type: str, meas_type: str = "") -> AttrsDict:
             "height": 2.0,
             "width": 1.0,
             "capsule": {
-                "width": 20,
+                "width": 2.0,
                 "depth": None,
                 "height": 10,
             },
