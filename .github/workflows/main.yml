@@ -41,14 +41,19 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
           python -m pip install --upgrade .[test]
 
-      - name: Set LEGEND_METADATA variable
-        run: |
-          echo "LEGEND_METADATA=$GITHUB_WORKSPACE/legend-metadata" >> $GITHUB_ENV
+      - name: Set LEGEND/HADES_METADATA variables
         # secrets are not available in PRs from forks, so do not even attempt to clone metadata.
         if:
           "${{ github.event_name != 'pull_request' ||
           github.event.pull_request.head.repo.owner.login == 'legend-exp' }}"
+        run: |
+          echo "LEGEND_METADATA=$GITHUB_WORKSPACE/legend-metadata" >> $GITHUB_ENV
+          echo "HADES_METADATA=$GITHUB_WORKSPACE/hades-metadata" >> $GITHUB_ENV
       - name: Clone legend-metadata
+        # secrets are not available in PRs from forks, so do not even attempt to clone metadata.
+        if:
+          "${{ github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.owner.login == 'legend-exp' }}"
         uses: actions/checkout@v6
         with:
           repository: legend-exp/legend-metadata
@@ -56,10 +61,18 @@ jobs:
           token: ${{ secrets.CLONE_LEGEND_METADATA }}
           path: ${{ env.LEGEND_METADATA }}
           submodules: "recursive"
+      - name: Clone hades-metadata
         # secrets are not available in PRs from forks, so do not even attempt to clone metadata.
         if:
           "${{ github.event_name != 'pull_request' ||
           github.event.pull_request.head.repo.owner.login == 'legend-exp' }}"
+        uses: actions/checkout@v6
+        with:
+          repository: legend-exp/hades-metadata
+          fetch-depth: 0
+          token: ${{ secrets.CLONE_LEGEND_METADATA }}
+          path: ${{ env.LEGEND_METADATA }}
+          submodules: "recursive"
 
       - name: Run unit tests
         run: |
@@ -92,14 +105,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Set LEGEND_METADATA variable
-        run: |
-          echo "LEGEND_METADATA=$GITHUB_WORKSPACE/legend-metadata" >> $GITHUB_ENV
+      - name: Set LEGEND/HADES_METADATA variables
         # secrets are not available in PRs from forks, so do not even attempt to clone metadata.
         if:
           "${{ github.event_name != 'pull_request' ||
           github.event.pull_request.head.repo.owner.login == 'legend-exp' }}"
+        run: |
+          echo "LEGEND_METADATA=$GITHUB_WORKSPACE/legend-metadata" >> $GITHUB_ENV
+          echo "HADES_METADATA=$GITHUB_WORKSPACE/hades-metadata" >> $GITHUB_ENV
       - name: Clone legend-metadata
+        # secrets are not available in PRs from forks, so do not even attempt to clone metadata.
+        if:
+          "${{ github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.owner.login == 'legend-exp' }}"
         uses: actions/checkout@v6
         with:
           repository: legend-exp/legend-metadata
@@ -107,10 +125,18 @@ jobs:
           token: ${{ secrets.CLONE_LEGEND_METADATA }}
           path: ${{ env.LEGEND_METADATA }}
           submodules: "recursive"
+      - name: Clone hades-metadata
         # secrets are not available in PRs from forks, so do not even attempt to clone metadata.
         if:
           "${{ github.event_name != 'pull_request' ||
           github.event.pull_request.head.repo.owner.login == 'legend-exp' }}"
+        uses: actions/checkout@v6
+        with:
+          repository: legend-exp/hades-metadata
+          fetch-depth: 0
+          token: ${{ secrets.CLONE_LEGEND_METADATA }}
+          path: ${{ env.LEGEND_METADATA }}
+          submodules: "recursive"
 
       - name: Generate Report
         run: |
@@ -134,14 +160,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Set LEGEND_METADATA variable
-        run: |
-          echo "LEGEND_METADATA=$GITHUB_WORKSPACE/legend-metadata" >> $GITHUB_ENV
+      - name: Set LEGEND/HADES_METADATA variables
         # secrets are not available in PRs from forks, so do not even attempt to clone metadata.
         if:
           "${{ github.event_name != 'pull_request' ||
           github.event.pull_request.head.repo.owner.login == 'legend-exp' }}"
+        run: |
+          echo "LEGEND_METADATA=$GITHUB_WORKSPACE/legend-metadata" >> $GITHUB_ENV
+          echo "HADES_METADATA=$GITHUB_WORKSPACE/hades-metadata" >> $GITHUB_ENV
       - name: Clone legend-metadata
+        # secrets are not available in PRs from forks, so do not even attempt to clone metadata.
+        if:
+          "${{ github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.owner.login == 'legend-exp' }}"
         uses: actions/checkout@v6
         with:
           repository: legend-exp/legend-metadata
@@ -149,10 +180,18 @@ jobs:
           token: ${{ secrets.CLONE_LEGEND_METADATA }}
           path: ${{ env.LEGEND_METADATA }}
           submodules: "recursive"
+      - name: Clone hades-metadata
         # secrets are not available in PRs from forks, so do not even attempt to clone metadata.
         if:
           "${{ github.event_name != 'pull_request' ||
           github.event.pull_request.head.repo.owner.login == 'legend-exp' }}"
+        uses: actions/checkout@v6
+        with:
+          repository: legend-exp/hades-metadata
+          fetch-depth: 0
+          token: ${{ secrets.CLONE_LEGEND_METADATA }}
+          path: ${{ env.LEGEND_METADATA }}
+          submodules: "recursive"
 
       - name: Setup build environment
         run: |
