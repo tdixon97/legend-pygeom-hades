@@ -205,6 +205,10 @@ def construct(
             msg = "requested a geometry with source but no source position information was provided"
             raise RuntimeError(msg)
 
+        if source_type not in ["am_HS1", "th_HS2"] and position == "lat":
+            msg = f"lateral position not implemented for source type {source_type}"
+            raise NotImplementedError(msg)
+
         source_dims = dim.get_source_metadata(source_type, position)
         holder_dims = dim.get_source_holder_metadata(source_type, position)
 
@@ -267,8 +271,8 @@ def construct(
             x_rot=0 if (position != "lat" or source_type != "th_HS2") else -np.pi / 2,
         )
         reg.addVolumeRecursive(pv)
-        reg.logicalVolumeDict[source_lv.name].pygeom_color_rgba = [0.5, 0.6, 0.4, 0.3]
-        reg.logicalVolumeDict["Source"].pygeom_color_rgba = [1, 0, 0, 0.6]
+        reg.logicalVolumeDict[source_lv.name].pygeom_color_rgba = [0.66, 0.44, 0.26, 0.5]
+        reg.logicalVolumeDict["Source"].pygeom_color_rgba = [1, 0, 0, 0.9]
 
         if source_type != "am_HS1":
             s_holder_lv = create_source_holder(
