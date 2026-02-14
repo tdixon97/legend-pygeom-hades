@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from importlib import resources
 
+import numpy as np
 import pyg4ometry
 
 from pygeomhades.metadata import PublicMetadataProxy
-from pygeomhades.utils import merge_configs, parse_measurement, read_gdml_with_replacements
+from pygeomhades.utils import get_profile, merge_configs, parse_measurement, read_gdml_with_replacements
 
 
 def test_merge_config():
@@ -50,4 +51,26 @@ def test_parse_measurement_basic():
 
 
 def test_profile():
-    pass
+    reg = pyg4ometry.geant4.Registry()
+
+    polycone = pyg4ometry.geant4.solid.Polycone(
+        "test_polycone", 0, 2 * np.pi, [0, 10], [2, 10], [3, 10], lunit="mm", registry=reg
+    )
+
+    profile = get_profile(polycone)
+
+    assert profile["r"] == [2, 10, 10, 3, 2]
+    assert profile["z"] == [0, 10, 10, 0, 0]
+
+    generic_polycone = pyg4ometry.geant4.solid.GenericPolycone(
+        "test_generic_polycone",
+        0,
+        2 * np.pi,
+        [0, 0, 10, 0],
+        [2, 2, 5, 5],
+        lunit="mm",
+        registry=reg,
+    )
+    profile = get_profile(generic_polycone)
+    assert profile["r"] == [0, 0, 10, 0, 0]
+    assert profile["z"] == [2, 2, 5, 5, 2]

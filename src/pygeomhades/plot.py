@@ -11,7 +11,7 @@ def plot_profiles(profiles: dict, title: str = "", show: bool = False) -> tuple[
     ----------
     profiles
         A dictionary mapping volume names to their profiles, where each profile is a
-        dictonary with 3 fields `r`, `z` and `offset`.
+        dictionary with 3 fields `r`, `z` and `offset`.
         The `r` and `z` fields are lists of the same length, containing the radius and z
         coordinates of the profile, respectively. The `offset` field is a single number
         representing the offset of the profile from the center of the geometry.
