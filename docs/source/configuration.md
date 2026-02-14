@@ -17,9 +17,6 @@ source_position: # the source position
   z_in_mm: 38.0
 ```
 
-This metadata is stored on github
-[[hades-metadata]](https://github.com/legend-exp/hades-metadata).
-
 :::{note}
 
 The different measurements are described on
@@ -27,3 +24,23 @@ The different measurements are described on
 (note this is a private page).
 
 :::
+
+This metadata is stored on github
+[[hades-metadata]](https://github.com/legend-exp/hades-metadata).
+
+This metadata can then be passed directly to `pygeomhades` either on the command
+line, on in python.
+
+For example:
+
+```python
+db = dbetto.TextDB("hades-metadata")  # load the metadata
+
+# construct the geometry
+reg = pygeomhades.core.construct(
+    db.hardware.configuration.V07302A.c1.am_HS1_top_dlt.run0001
+)
+
+# visualise
+pygeomtools.viewer.visualize(reg)
+```
