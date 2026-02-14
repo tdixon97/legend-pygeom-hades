@@ -77,7 +77,6 @@ def test_overlaps(gdml_files):
         "/RMG/Geometry/RegisterDetectorsFromGDML Germanium",
         "/run/initialize",
     ]
-    res = []
     for gdml_file in gdml_files:
         remage_run(
             macro,

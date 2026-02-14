@@ -42,7 +42,7 @@ def get_cryostat_metadata(det_type: str, order: int, xtal_slice: str) -> AttrsDi
         "position_cavity_from_bottom": 0.8,
         "position_from_bottom": 250.0,
     }
-    xl_orders = [3, 8, 9, 10]
+    xl_orders = [3, 8, 9, 10, 11, 13, 14]
 
     if det_type == "bege":
         cryostat["height"] = 122.2
