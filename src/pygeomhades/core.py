@@ -106,8 +106,8 @@ def construct(
 
     hpge_name = config.detector
     measurement = config.measurement
-    source_pos = getattr(config, "source_position", None)
-    run = getattr(config, "run", None)
+    source_pos = config.get("source_position", None)
+    run = config.get("run", None)
     table = int(config.daq_settings.flashcam.card_interface[-1])
 
     if extra_meta is None:
@@ -221,11 +221,14 @@ def construct(
             source_pos.phi_in_deg, source_pos.r_in_mm, source_pos.z_in_mm, source_type
         )
 
+        # source position in the detector frame
         x_pos, y_pos, z_pos = source_position
+        source_y_pos = y_pos
+        source_z_pos = z_pos
 
         if source_type == "th_HS2":
             if position == "top":
-                z_pos = -(
+                source_z_pos = -(
                     z_pos
                     + holder_dims.source.top_plate_height / 2
                     + source_dims.copper.height
@@ -242,7 +245,7 @@ def construct(
                 reg.addVolumeRecursive(pv)
 
             elif position == "lat":  # lat
-                y_pos = holder_dims.outer_width / 2 + source_dims.copper.bottom_height
+                source_y_pos = holder_dims.outer_width / 2 + source_dims.copper.bottom_height
                 z_pos_holder = z_pos  # ?
 
                 msg = "For th lateral source z position may not be correct and rotation is not present."
@@ -252,17 +255,21 @@ def construct(
             else:
                 msg = f" position {position} not implemented."
                 raise NotImplementedError(msg)
+
         elif source_type == "am_HS1":
-            z_pos = -(z_pos + source_dims.collimator.height / 2)
+            source_z_pos = -(z_pos + source_dims.collimator.height / 2)
 
         elif source_type in {"co_HS5", "ba_HS4", "am_HS6"}:
-            z_pos = -z_pos
             z_pos_holder = -(z_pos + holder_dims.source.top_plate_height / 2)
+            source_z_pos = -z_pos
+
         else:
             msg = f" Source type {source_type} not implemented."
             raise NotImplementedError(msg)
 
-        pv = _place_pv(source_lv, "source_pv", lab_lv, reg, x_in_mm=x_pos, y_in_mm=y_pos, z_in_mm=z_pos)
+        pv = _place_pv(
+            source_lv, "source_pv", lab_lv, reg, x_in_mm=x_pos, y_in_mm=source_y_pos, z_in_mm=source_z_pos
+        )
         reg.addVolumeRecursive(pv)
         reg.logicalVolumeDict[source_lv.name].pygeom_color_rgba = [0.8, 0.6, 0.4, 0.2]
 
