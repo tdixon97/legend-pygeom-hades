@@ -11,10 +11,12 @@ import pygeomtools
 from dbetto import AttrsDict, TextDB
 from git import GitCommandError
 from legendmeta import LegendMetadata
+from matplotlib import pyplot as plt
 from pyg4ometry import geant4
 from pygeomhpges import make_hpge
 
 from pygeomhades import dimensions as dim
+from pygeomhades import plot
 from pygeomhades.create_volumes import (
     create_bottom_plate,
     create_cryostat,
@@ -27,7 +29,7 @@ from pygeomhades.create_volumes import (
     create_wrap,
 )
 from pygeomhades.metadata import PublicMetadataProxy
-from pygeomhades.utils import merge_configs, parse_measurement
+from pygeomhades.utils import get_profile, merge_configs, parse_measurement
 
 log = logging.getLogger(__name__)
 
@@ -65,6 +67,7 @@ def construct(
     config: AttrsDict,
     extra_meta: TextDB | Path | str | None = None,
     public_geometry: bool = False,
+    plot_profiles: bool = False,
 ) -> geant4.Registry:
     """Construct the HADES geometry.
 
@@ -96,8 +99,11 @@ def construct(
     public_geometry
       if true, uses the public geometry metadata instead of the LEGEND-internal
       legend-metadata.
+    plot_profiles
+        if true, plots the profiles of the volumes in the geometry using matplotlib.
     """
 
+    profiles = {}
     hpge_name = config.detector
     measurement = config.measurement
     source_pos = config.get("source_position", None)
@@ -129,6 +135,7 @@ def construct(
 
     position = measurement_info.position
     source_type = measurement_info.source
+
     diode_meta = lmeta.hardware.detectors.germanium.diodes[hpge_name]
     hpge_meta = merge_configs(diode_meta, extra_meta[hpge_name])
 
@@ -154,25 +161,32 @@ def construct(
     cavity_lv = create_vacuum_cavity(cryostat_meta, reg)
     cavity_lv.pygeom_color_rgba = False
 
+    # save the info for plotting
+    profiles["cavity"] = get_profile(cavity_lv.solid) | {"offset": cryostat_meta.position_cavity_from_top}
+
     _place_pv(cavity_lv, "cavity_pv", lab_lv, reg, z_in_mm=cryostat_meta.position_cavity_from_top)
 
     # construct the mylar wrap
     wrap_lv = create_wrap(hpge_meta.hades.wrap.geometry, from_gdml=True)
-    wrap_lv.pygeom_color_rgba = [0.0, 0.8, 0.2, 0.3]
+    wrap_lv.pygeom_color_rgba = [1.0, 1.0, 1.0, 0.8]
 
     z_pos = hpge_meta.hades.wrap.position - cryostat_meta.position_cavity_from_top
     pv = _place_pv(wrap_lv, "wrap_pv", cavity_lv, reg, z_in_mm=z_pos)
+
+    profiles["wrap"] = get_profile(wrap_lv.solid) | {"offset": z_pos + profiles["cavity"]["offset"]}
     reg.addVolumeRecursive(pv)
 
     # construct the holder
     holder_lv = create_holder(
         hpge_meta.hades.holder.geometry, hpge_meta.type, hpge_meta.production.order, from_gdml=True
     )
-    holder_lv.pygeom_color_rgba = [0.0, 0.8, 0.2, 0.3]
+    holder_lv.pygeom_color_rgba = [0.0, 0.8, 0.2, 0.8]
 
     z_pos = hpge_meta.hades.holder.position - cryostat_meta.position_cavity_from_top
     pv = _place_pv(holder_lv, "holder_pv", cavity_lv, reg, z_in_mm=z_pos)
     reg.addVolumeRecursive(pv)
+
+    profiles["holder"] = get_profile(holder_lv.solid) | {"offset": z_pos + profiles["cavity"]["offset"]}
 
     # construct the hpge, for now do not allow cylindrical asymmetry
     detector_lv = make_hpge(hpge_meta, name=hpge_meta.name, registry=reg, allow_cylindrical_asymmetry=False)
@@ -187,6 +201,10 @@ def construct(
     # we need to flip the detector axes when placing it in the cryostat
     pv = _place_pv(detector_lv, hpge_meta.name, cavity_lv, reg, z_in_mm=z_pos, invert_z_axes=True)
 
+    profiles["detector"] = get_profile(detector_lv.solid, flip=True) | {
+        "offset": z_pos + profiles["cavity"]["offset"]
+    }
+
     # register the detector info for remage
     pv.set_pygeom_active_detector(
         pygeomtools.RemageDetectorInfo(
@@ -197,9 +215,11 @@ def construct(
     )
     # construct the cryostat
     cryo_lv = create_cryostat(cryostat_meta, from_gdml=True)
-    cryo_lv.pygeom_color_rgba = [0.0, 0.2, 0.8, 0.3]
+    cryo_lv.pygeom_color_rgba = [0.0, 0.2, 0.8, 0.5]
 
     pv = _place_pv(cryo_lv, "cryo_pv", lab_lv, reg)
+    profiles["cryo"] = get_profile(cryo_lv.solid) | {"offset": 0}
+
     reg.addVolumeRecursive(pv)
 
     if "source_position" in config:
@@ -284,7 +304,7 @@ def construct(
                 meas_type=position,
                 from_gdml=True,
             )
-            s_holder_lv.pygeom_color_rgba = [0, 1, 1, 0.2]
+            s_holder_lv.pygeom_color_rgba = [0, 1, 1, 0.5]
 
             pv = _place_pv(s_holder_lv, "source_holder_pv", lab_lv, reg, z_in_mm=z_pos_holder)
             reg.addVolumeRecursive(pv)
@@ -322,6 +342,11 @@ def construct(
         z_pos = cryostat_meta.position_from_bottom - castle_dims.base.height / 2.0
         pv = _place_pv(castle_lv, "castle_pv", lab_lv, reg, z_in_mm=z_pos)
         reg.addVolumeRecursive(pv)
+
+    # plot the profiles
+    if plot_profiles:
+        _, _ = plot.plot_profiles(profiles, title=f"{hpge_name}")
+        plt.show()
 
     return reg
 

@@ -47,3 +47,7 @@ def test_parse_measurement_basic():
     out = parse_measurement("am_HS6_top_dlt")
 
     assert out.source == "am_HS6"  # no renaming
+
+
+def test_profile():
+    pass

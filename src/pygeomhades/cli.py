@@ -36,6 +36,7 @@ def dump_gdml_cli(argv: list[str] | None = None) -> None:
     registry = core.construct(
         config,
         public_geometry=args.public_geom,
+        plot_profiles=args.plot_profile,
     )
 
     if args.print_volumes:
@@ -89,6 +90,12 @@ def _parse_cli_args(argv: list[str] | None = None) -> argparse.Namespace:
         nargs="?",
         const=True,
         help="""Open a VTK visualization of the generated geometry (with optional scene file)""",
+    )
+    parser.add_argument(
+        "--plot-profile",
+        "-p",
+        action="store_true",
+        help="""Plot the profiles of the volumes inside the cryostat.""",
     )
     parser.add_argument(
         "--clip-geometry",

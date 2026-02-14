@@ -92,3 +92,28 @@ def read_gdml_with_replacements(
         reg_tmp = reader.getRegistry()
 
     return reg_tmp.worldVolume
+
+
+def get_profile(
+    solid: geant4.solid.GenericPolycone | geant4.solid.Polycone, flip: bool = False
+) -> dict[str, list[float]]:
+    """Get the (r,z) pairs making up the profile of a solid. Only works for polycones.
+
+    Parameters
+    ----------
+    solid
+        The solid to get the profile of.
+    flip
+        Whether to flip the z. This is needed for the detector, which is placed with inverted axes in the cryostat.
+    """
+    sign = -1 if flip else 1
+
+    if isinstance(solid, geant4.solid.GenericPolycone):
+        return {"r": [*solid.pR, solid.pR[0]], "z": [sign * zt for zt in [*solid.pZ, solid.pZ[0]]]}
+    if isinstance(solid, geant4.solid.Polycone):
+        return {
+            "z": [sign * zt for zt in [*solid.pZpl, *solid.pZpl[::-1], solid.pZpl[0]]],
+            "r": [*solid.pRMin, *solid.pRMax[::-1], solid.pRMin[0]],
+        }
+    msg = f"Solid of type {type(solid)} is not supported for profile extraction."
+    raise ValueError(msg)
