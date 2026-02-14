@@ -1,0 +1,12 @@
+run0001:
+  campaign: c1
+  daq_settings:
+    flashcam:
+      card_interface: efb3
+  detector: V07302A
+  measurement: am_HS1_top_dlt
+  run: run0001
+  source_position:
+    phi_in_deg: 0.0
+    r_in_mm: 46.0
+    z_in_mm: 3.0
