@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import dbetto
 import pygeomtools
 import pytest
 
@@ -17,14 +18,18 @@ pytestmark = [
 
 @pytest.fixture
 def gdml_file(tmp_path):
+    daq_settings = dbetto.AttrsDict({"flashcam": {"card_interface": "efb1"}})
+
     reg = core.construct(
-        pygeomtools.AttrsDict(
+        dbetto.AttrsDict(
             {
                 "hpge_name": "V07302A",  # this works since its larger than the test detector
                 "campaign": "c1",
-                "measurement": "am_HS1_top_dlt",
+                "measurement": "am_HS6_top_dlt",
+                "daq_settings": daq_settings,
             }
         ),
+        assemblies=["hpge", "lead_castle"],
         public_geometry=True,
     )
 

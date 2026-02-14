@@ -80,7 +80,6 @@ def construct(
       .. code-block:: yaml
 
           detector: V13049A
-          collimator: false
           daq_settings:
             flashcam:
               card_interface: efb2
@@ -107,7 +106,7 @@ def construct(
 
     hpge_name = config.detector
     measurement = config.measurement
-    source_pos = getattr(config, "source_pos", None)
+    source_pos = getattr(config, "source_position", None)
     run = getattr(config, "run", None)
     table = int(config.daq_settings.flashcam.card_interface[-1])
 
@@ -245,6 +244,9 @@ def construct(
             elif position == "lat":  # lat
                 y_pos = holder_dims.outer_width / 2 + source_dims.copper.bottom_height
                 z_pos_holder = z_pos  # ?
+
+                msg = "For th lateral source z position may not be correct and rotation is not present."
+                log.warning(msg)
                 # add rotation
 
             else:
@@ -276,7 +278,8 @@ def construct(
             pv = _place_pv(s_holder_lv, "source_holder_pv", lab_lv, reg, z_in_mm=z_pos_holder)
             reg.addVolumeRecursive(pv)
 
-            # construct lead castle and bottom plate
+    # construct lead castle and bottom plate
+
     if "lead_castle" in assemblies:
         if "source" in assemblies and source_type == "am_HS1":
             msg = f"No lead castle used in the measurement {measurement}"
@@ -317,14 +320,42 @@ def construct(
 
 def translate_to_detector_frame(
     phi: float, r: float, z: float, source_type: str
-) -> tuple[float, float, float]:
-    """Translate the source position from metadata to detector frame"""
+) -> list[float, float, float]:
+    """Translate the source position from metadata to detector frame
+
+    In most cases this is purely a translation from cylindrical to Cartesian coordinates, but for the am_HS1 source there is an extra offset in r that is not well known.
+
+    Parameters
+    ----------
+    phi
+        the phi position of the source in degrees, as given in the metadata
+    r
+        the r position of the source in mm, as given in the metadata
+    z
+        the z position of the source in mm, as given in the metadata
+    source_type
+        the type of source, as given in the metadata, e.g., "am_HS1"
+
+    Returns
+    -------
+    x_position
+        the x position of the source in mm in the detector frame
+    y_position
+        the y position of the source in mm in the detector frame
+    z_position
+        the z position of the source in mm in the detector frame
+
+    """
 
     if source_type == "am_HS1" and r != 0:
         r += -66  # update this condition
         if r < 0:
             phi += 180
             r = abs(r)
+
+        msg = "Translation to detector from for am_HS1 and r!=0 is uncertain. Proceed with caution."
+        log.warning(msg)
+
     phi = phi * math.pi / 180.0
     x_position = round(r * math.cos(phi), 2)
     y_position = round(-r * math.sin(phi), 2)
